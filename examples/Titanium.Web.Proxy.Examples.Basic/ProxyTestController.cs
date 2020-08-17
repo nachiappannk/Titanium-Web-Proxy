@@ -234,7 +234,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
 
             var url = e.HttpClient.Request.Url;
-            if (hostNames.Any(x => url.Contains(x)))
+            if (IsValidHost(url))
             {
                 //httpWebClients.Add(e.HttpClient);
                 await writeToConsole("Active Client Connections:" + ((ProxyServer)sender).ClientConnectionCount);
@@ -261,6 +261,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         }
 
+        private bool IsValidHost(string url)
+        {
+            return hostNames.Any(x => url.Contains(x));
+        }
+
         // Modify response
         private async Task multipartRequestPartSent(object sender, MultipartRequestPartSentEventArgs e)
         {
@@ -278,16 +283,23 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
 
+
+
             if (e.HttpClient.ConnectRequest?.TunnelType == TunnelType.Websocket)
             {
                 e.DataSent += WebSocket_DataSent;
                 e.DataReceived += WebSocket_DataReceived;
             }
 
-            await writeToConsole("Active Server Connections:" + ((ProxyServer)sender).ServerConnectionCount);
+            if(IsValidHost(e.HttpClient.Request.Url))
+            {
+                await writeToConsole("Active Server Connections:" + ((ProxyServer)sender).ServerConnectionCount);
+            
+                string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
+                await writeToConsole("response" + e.HttpClient.Request.Url);
+                await writeToConsole("response1" + ext);
 
-            string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
-
+            }
             // access user data set in request to do something with it
             //var userData = e.HttpClient.UserData as CustomUserData;
 
