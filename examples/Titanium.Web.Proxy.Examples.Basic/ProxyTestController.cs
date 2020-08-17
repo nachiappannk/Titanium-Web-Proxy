@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
@@ -15,21 +16,15 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class ProxyTestController : IDisposable
     {
+        private readonly List<string> hostNames;
         private readonly SemaphoreSlim @lock = new SemaphoreSlim(1);
         private readonly ProxyServer proxyServer;
         private ExplicitProxyEndPoint explicitEndPoint;
 
-        public ProxyTestController()
+        public ProxyTestController(List<String> hostNames)
         {
+            this.hostNames = hostNames;
             proxyServer = new ProxyServer();
-
-            //proxyServer.EnableHttp2 = true;
-
-            // generate root certificate without storing it in file system
-            //proxyServer.CertificateManager.CreateRootCertificate(false);
-
-            //proxyServer.CertificateManager.TrustRootCertificate();
-            //proxyServer.CertificateManager.TrustRootCertificateAsAdmin();
 
             proxyServer.ExceptionFunc = async exception =>
             {
@@ -49,21 +44,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             proxyServer.EnableConnectionPool = false;
             proxyServer.ForwardToUpstreamGateway = true;
             proxyServer.CertificateManager.SaveFakeCertificates = true;
-            //proxyServer.ProxyBasicAuthenticateFunc = async (args, userName, password) =>
-            //{
-            //    return true;
-            //};
-
-            // this is just to show the functionality, provided implementations use junk value
-            //proxyServer.GetCustomUpStreamProxyFunc = onGetCustomUpStreamProxyFunc;
-            //proxyServer.CustomUpStreamProxyFailureFunc = onCustomUpStreamProxyFailureFunc;
-
-            // optionally set the Certificate Engine
-            // Under Mono or Non-Windows runtimes only BouncyCastle will be supported
-            //proxyServer.CertificateManager.CertificateEngine = Network.CertificateEngine.BouncyCastle;
-
-            // optionally set the Root Certificate
-            //proxyServer.CertificateManager.RootCertificate = new X509Certificate2("myCert.pfx", string.Empty, X509KeyStorageFlags.Exportable);
         }
 
         public void StartProxy()

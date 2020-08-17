@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Titanium.Web.Proxy.Examples.Basic.Helpers;
 using Titanium.Web.Proxy.Helpers;
 
@@ -10,7 +11,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public static void Main(string[] args)
         {
-            ProxyTestController controller = new ProxyTestController();
+            List<String> hostNames = new List<string>() { "google.com", "ndtv.com" };
+
+            ProxyTestController controller = new ProxyTestController(hostNames);
 
             if (RunTime.IsWindows)
             {
