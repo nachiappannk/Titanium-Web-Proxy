@@ -18,9 +18,57 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public static void Main(string[] args)
         {
+            //Code to intercept the network traffic.
             asyncMain().GetAwaiter().GetResult();
-            CreateFile("somfile.txt", 4 * MB).GetAwaiter().GetResult();
+
+            //Code to generate a random file
+            CreateFile(workingDirectory1+"somfile.txt", 4 * MB).GetAwaiter().GetResult();
         }
+
+        private async Task TestCase(int fileSize)
+        {
+            //Generate a file name
+            //Delete file if present
+            await CreateFile(workingDirectory1 + "someFile.txt", fileSize);
+            await Part1();
+            await Part2();
+        }
+
+        private async Task Part2()
+        {
+            ProxyTestController controller = new ProxyTestController(hostNames1);
+
+            controller.StartProxy();
+            await CopyFileViaSelenium();
+            //Wait for sometime
+            var logs = controller.Stop();
+            await Task.Delay(5000);
+            System.IO.File.WriteAllLines(workingDirectory1 + outputFileName1, logs);
+            controller.Dispose();
+        }
+
+        private async Task CopyFileViaSelenium()
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task Part1()
+        {
+            ProxyTestController controller = new ProxyTestController(hostNames1);
+            await CopyToFolderForUpload();
+            controller.StartProxy();
+            //Wait for sometime
+            var logs = controller.Stop();
+            await Task.Delay(5000);
+            System.IO.File.WriteAllLines(workingDirectory1 + outputFileName1, logs);
+            controller.Dispose();
+        }
+
+        private async Task CopyToFolderForUpload()
+        {
+            throw new NotImplementedException();
+        }
+
 
         private static Random random = new Random();
 
