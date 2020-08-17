@@ -161,14 +161,12 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 e.HttpClient.UpStreamEndPoint = new IPEndPoint(clientLocalIp, 0);
             }
-
-            var url = e.HttpClient.Request.Url;
+            var httpClient = e.HttpClient;
+            var url = httpClient.Request.Url;
             if (IsValidHost(url))
             {
-                //httpWebClients.Add(e.HttpClient);
-                await writeToConsole("Active Client Connections:" + ((ProxyServer)sender).ClientConnectionCount);
-                await writeToConsole(e.HttpClient.Request.Url);
-                await writeToConsole("ProcessID " + e.HttpClient.ProcessId.Value.ToString());
+                await writeToConsole(url);
+                await writeToConsole("ProcessID " + httpClient.ProcessId.Value.ToString());
             }
         }
 
