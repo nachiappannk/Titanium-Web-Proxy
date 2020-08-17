@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Titanium.Web.Proxy.Examples.Basic.Helpers;
 using Titanium.Web.Proxy.Helpers;
 
@@ -10,6 +11,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
         
 
         public static void Main(string[] args)
+        {
+            asyncMain().GetAwaiter().GetResult();
+        }
+
+        private static async Task asyncMain()
         {
             List<String> hostNames = new List<string>() { "google.com", "ndtv.com" };
 
@@ -29,10 +35,12 @@ namespace Titanium.Web.Proxy.Examples.Basic
             Console.Read();
 
             var logs = controller.Stop();
+            await Task.Delay(5000);
             foreach (string log in logs)
             {
                 Console.WriteLine(log);
             }
+
             controller.Dispose();
         }
     }
