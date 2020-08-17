@@ -13,7 +13,7 @@ using Titanium.Web.Proxy.StreamExtended.Network;
 
 namespace Titanium.Web.Proxy.Examples.Basic
 {
-    public class ProxyTestController
+    public class ProxyTestController : IDisposable
     {
         private readonly SemaphoreSlim @lock = new SemaphoreSlim(1);
         private readonly ProxyServer proxyServer;
@@ -418,15 +418,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
             @lock.Release();
         }
 
-        ///// <summary>
-        ///// User data object as defined by user.
-        ///// User data can be set to each SessionEventArgs.HttpClient.UserData property
-        ///// </summary>
-        //public class CustomUserData
-        //{
-        //    public HeaderCollection RequestHeaders { get; set; }
-        //    public byte[] RequestBody { get; set; }
-        //    public string RequestBodyString { get; set; }
-        //}
+
+        public void Dispose()
+        {
+            @lock?.Dispose();
+            proxyServer?.Dispose();
+        }
     }
 }

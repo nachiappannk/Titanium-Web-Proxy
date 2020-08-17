@@ -6,10 +6,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class Program
     {
-        private static readonly ProxyTestController controller = new ProxyTestController();
+        
 
         public static void Main(string[] args)
         {
+            ProxyTestController controller = new ProxyTestController();
 
             if (RunTime.IsWindows)
             {
@@ -25,6 +26,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             Console.Read();
 
             controller.Stop();
+            controller.Dispose();
         }
     }
 }
