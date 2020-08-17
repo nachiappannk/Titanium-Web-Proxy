@@ -17,7 +17,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private static async Task asyncMain()
         {
-            List<String> hostNames = new List<string>() { "google.com", "ndtv.com" };
+            List<String> hostNames = new List<string>() { "google", "ndtv" };
 
             ProxyTestController controller = new ProxyTestController(hostNames);
 

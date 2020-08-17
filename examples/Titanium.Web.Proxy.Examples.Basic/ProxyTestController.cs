@@ -21,6 +21,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private readonly ProxyServer proxyServer;
         private ExplicitProxyEndPoint explicitEndPoint;
         private List<String> logs = new List<String>();
+        private HashSet<HttpWebClient> httpWebClients = new HashSet<HttpWebClient>();
 
         public ProxyTestController(List<String> hostNames)
         {
@@ -31,11 +32,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 if (exception is ProxyHttpException phex)
                 {
-                    await writeToConsole(exception.Message + ": " + phex.InnerException?.Message, ConsoleColor.Red);
+                    //TBD await writeToConsole(exception.Message + ": " + phex.InnerException?.Message, ConsoleColor.Red);
                 }
                 else
                 {
-                    await writeToConsole(exception.Message, ConsoleColor.Red);
+                    //TBD await writeToConsole(exception.Message, ConsoleColor.Red);
                 }
             };
 
@@ -165,7 +166,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             string hostname = e.HttpClient.Request.RequestUri.Host;
             e.GetState().PipelineInfo.AppendLine(nameof(onBeforeTunnelConnectRequest) + ":" + hostname);
-            await writeToConsole("Tunnel to: " + hostname);
+            //TBD await writeToConsole("Tunnel to: " + hostname);
 
             var clientLocalIp = e.ClientLocalEndPoint.Address;
             if (!clientLocalIp.Equals(IPAddress.Loopback) && !clientLocalIp.Equals(IPAddress.IPv6Loopback))
@@ -204,12 +205,12 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 {
                     var data = frame.Data.ToArray();
                     string str = string.Join(",", data.ToArray().Select(x => x.ToString("X2")));
-                    writeToConsole(str, color).Wait();
+                    //TBD writeToConsole(str, color).Wait();
                 }
 
                 if (frame.OpCode == WebsocketOpCode.Text)
                 {
-                    writeToConsole(frame.GetText(), color).Wait();
+                    //TBD writeToConsole(frame.GetText(), color).Wait();
                 }
             }
         }
@@ -232,8 +233,14 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 e.HttpClient.UpStreamEndPoint = new IPEndPoint(clientLocalIp, 0);
             }
 
-            await writeToConsole("Active Client Connections:" + ((ProxyServer)sender).ClientConnectionCount);
-            await writeToConsole(e.HttpClient.Request.Url);
+            var url = e.HttpClient.Request.Url;
+            if (hostNames.Any(x => url.Contains(x)))
+            {
+                //httpWebClients.Add(e.HttpClient);
+                await writeToConsole("Active Client Connections:" + ((ProxyServer)sender).ClientConnectionCount);
+                await writeToConsole(e.HttpClient.Request.Url);
+            }
+
 
             // store it in the UserData property
             // It can be a simple integer, Guid, or any type
@@ -260,10 +267,10 @@ namespace Titanium.Web.Proxy.Examples.Basic
             e.GetState().PipelineInfo.AppendLine(nameof(multipartRequestPartSent));
 
             var session = (SessionEventArgs)sender;
-            await writeToConsole("Multipart form data headers:");
+            //TBD await writeToConsole("Multipart form data headers:");
             foreach (var header in e.Headers)
             {
-                await writeToConsole(header.ToString());
+               //TBD await writeToConsole(header.ToString());
             }
         }
 
@@ -323,7 +330,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private async Task onAfterResponse(object sender, SessionEventArgs e)
         {
-            await writeToConsole($"Pipelineinfo: {e.GetState().PipelineInfo}", ConsoleColor.Yellow);
+            //TBD await writeToConsole($"Pipelineinfo: {e.GetState().PipelineInfo}", ConsoleColor.Yellow);
         }
 
         /// <summary>
@@ -362,6 +369,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             await @lock.WaitAsync();
             logs.Add(message);
+            Console.WriteLine(message);
             @lock.Release();
         }
 
