@@ -36,11 +36,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             var logs = controller.Stop();
             await Task.Delay(5000);
-            foreach (string log in logs)
-            {
-                Console.WriteLine(log);
-            }
-
+            System.IO.File.WriteAllLines(@"C:\Data\proxy.txt", logs);
             controller.Dispose();
         }
     }

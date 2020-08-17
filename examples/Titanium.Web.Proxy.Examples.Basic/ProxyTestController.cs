@@ -98,7 +98,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 e.HttpClient.UpStreamEndPoint = new IPEndPoint(clientLocalIp, 0);
             }
 
-            if (!IsValidHost(hostname))
+            if (!IsValidHost(hostname, e.HttpClient.ProcessId.Value))
             {
                 // Exclude Https addresses you don't want to proxy
                 // Useful for clients that use certificate pinning
@@ -148,7 +148,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
             var httpClient = e.HttpClient;
             var url = httpClient.Request.Url;
-            if (IsValidHost(url))
+            if (IsValidHost(url, e.HttpClient.ProcessId.Value))
             {
                 e.GetState().PipelineInfo.AppendLine(nameof(onRequest) + ":" + e.HttpClient.Request.RequestUri);
                 await writeToConsole("request", url);
@@ -156,7 +156,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
         }
 
-        private bool IsValidHost(string url)
+        private bool IsValidHost(string url, int procId)
         {
             return hostNames.Any(x => url.Contains(x));
         }
@@ -166,14 +166,14 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             if (e.HttpClient.ConnectRequest?.TunnelType == TunnelType.Websocket)
             {
-                if (IsValidHost(e.HttpClient.Request.Url))
+                if (IsValidHost(e.HttpClient.Request.Url, e.HttpClient.ProcessId.Value))
                 {
                     e.DataSent += WebSocket_DataSent;
                     e.DataReceived += WebSocket_DataReceived;
                 }
             }
 
-            if(IsValidHost(e.HttpClient.Request.Url))
+            if(IsValidHost(e.HttpClient.Request.Url, e.HttpClient.ProcessId.Value))
             {
                 e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
                 string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
@@ -185,7 +185,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private async Task onAfterResponse(object sender, SessionEventArgs e)
         {
-            if (IsValidHost(e.HttpClient.Request.Url))
+            if (IsValidHost(e.HttpClient.Request.Url, e.HttpClient.ProcessId.Value))
             {
                 await writeToConsole("Pipelineinfo", $"{e.GetState().PipelineInfo}");
             }
@@ -212,7 +212,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             var mes = DateTime.Now.ToLongTimeString() +"\t"+ type + "\t" + message;
             await @lock.WaitAsync();
             logs.Add(mes);
-            Console.WriteLine(mes);
             @lock.Release();
         }
 
