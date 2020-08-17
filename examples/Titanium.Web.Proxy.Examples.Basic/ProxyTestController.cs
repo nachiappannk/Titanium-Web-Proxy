@@ -255,24 +255,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
             //    e.MultipartRequestPartSent += MultipartRequestPartSent;
             //}
 
-            // To cancel a request with a custom HTML content
-            // Filter URL
-            //if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("yahoo.com"))
-            //{ 
-            //    e.Ok("<!DOCTYPE html>" +
-            //          "<html><body><h1>" +
-            //          "Website Blocked" +
-            //          "</h1>" +
-            //          "<p>Blocked by titanium web proxy.</p>" +
-            //          "</body>" +
-            //          "</html>");
-            //} 
 
-            ////Redirect example
-            //if (e.HttpClient.Request.RequestUri.AbsoluteUri.Contains("wikipedia.org"))
-            //{ 
-            //   e.Redirect("https://www.paypal.com");
-            //} 
+
         }
 
         // Modify response
