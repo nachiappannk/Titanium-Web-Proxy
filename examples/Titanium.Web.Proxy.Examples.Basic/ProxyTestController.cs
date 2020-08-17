@@ -166,7 +166,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             string hostname = e.HttpClient.Request.RequestUri.Host;
             e.GetState().PipelineInfo.AppendLine(nameof(onBeforeTunnelConnectRequest) + ":" + hostname);
-            //TBD await writeToConsole("Tunnel to: " + hostname);
+            
 
             var clientLocalIp = e.ClientLocalEndPoint.Address;
             if (!clientLocalIp.Equals(IPAddress.Loopback) && !clientLocalIp.Equals(IPAddress.IPv6Loopback))
@@ -174,12 +174,18 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 e.HttpClient.UpStreamEndPoint = new IPEndPoint(clientLocalIp, 0);
             }
 
-            if (hostname.Contains("dropbox.com"))
+            if (!IsValidHost(hostname))
             {
                 // Exclude Https addresses you don't want to proxy
                 // Useful for clients that use certificate pinning
                 // for example dropbox.com
+                
                 e.DecryptSsl = false;
+            }
+            else
+            {
+                await writeToConsole("Tunnel to: " + hostname);
+                await writeToConsole("Tunnel to: " + e.HttpClient.Request.RequestUri);
             }
         }
 
@@ -239,6 +245,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 //httpWebClients.Add(e.HttpClient);
                 await writeToConsole("Active Client Connections:" + ((ProxyServer)sender).ClientConnectionCount);
                 await writeToConsole(e.HttpClient.Request.Url);
+                await writeToConsole("ProcessID " + e.HttpClient.ProcessId.Value.ToString());
             }
 
 
@@ -284,7 +291,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
 
 
-
             if (e.HttpClient.ConnectRequest?.TunnelType == TunnelType.Websocket)
             {
                 e.DataSent += WebSocket_DataSent;
@@ -296,8 +302,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 await writeToConsole("Active Server Connections:" + ((ProxyServer)sender).ServerConnectionCount);
             
                 string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
-                await writeToConsole("response" + e.HttpClient.Request.Url);
-                await writeToConsole("response1" + ext);
+                await writeToConsole("response " + e.HttpClient.Request.Url);
+                await writeToConsole("response 1" + ext);
+                await writeToConsole("ProcessID " + e.HttpClient.ProcessId.Value.ToString());
 
             }
             // access user data set in request to do something with it
