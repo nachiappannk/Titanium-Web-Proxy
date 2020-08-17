@@ -32,11 +32,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 if (exception is ProxyHttpException phex)
                 {
-                    await writeToConsole(exception.Message + ": " + phex.InnerException?.Message, ConsoleColor.Red);
+                    await writeToConsole("Exception", exception.Message + ": " + phex.InnerException?.Message);
                 }
                 else
                 {
-                    await writeToConsole(exception.Message, ConsoleColor.Red);
+                    await writeToConsole("Exception", exception.Message);
                 }
             };
 
@@ -108,8 +108,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
             else
             {
-                await writeToConsole("Tunnel to: " + hostname);
-                await writeToConsole("Tunnel to: " + e.HttpClient.Request.RequestUri);
+                await writeToConsole("Tunnel to" , hostname);
+                await writeToConsole("Tunnel to ", e.HttpClient.Request.Url);
             }
         }
 
@@ -127,35 +127,20 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private void WebSocketDataSentReceived(SessionEventArgs args, DataEventArgs e, bool sent)
         {
-            var color = sent ? ConsoleColor.Green : ConsoleColor.Blue;
-
             foreach (var frame in args.WebSocketDecoder.Decode(e.Buffer, e.Offset, e.Count))
             {
-                if (frame.OpCode == WebsocketOpCode.Binary)
-                {
-                    var data = frame.Data.ToArray();
-                    string str = string.Join(",", data.ToArray().Select(x => x.ToString("X2")));
-                    //TBD writeToConsole(str, color).Wait();
-                }
-
-                if (frame.OpCode == WebsocketOpCode.Text)
-                {
-                    //TBD writeToConsole(frame.GetText(), color).Wait();
-                }
+                writeToConsole("socket comm", "is Sent :"+sent + frame.OpCode).Wait();
             }
         }
 
         private Task onBeforeTunnelConnectResponse(object sender, TunnelConnectSessionEventArgs e)
         {
             e.GetState().PipelineInfo.AppendLine(nameof(onBeforeTunnelConnectResponse) + ":" + e.HttpClient.Request.RequestUri);
-
             return Task.CompletedTask;
         }
 
         private async Task onRequest(object sender, SessionEventArgs e)
         {
-            e.GetState().PipelineInfo.AppendLine(nameof(onRequest) + ":" + e.HttpClient.Request.RequestUri);
-
             var clientLocalIp = e.ClientLocalEndPoint.Address;
             if (!clientLocalIp.Equals(IPAddress.Loopback) && !clientLocalIp.Equals(IPAddress.IPv6Loopback))
             {
@@ -165,8 +150,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
             var url = httpClient.Request.Url;
             if (IsValidHost(url))
             {
-                await writeToConsole(url);
-                await writeToConsole("ProcessID " + httpClient.ProcessId.Value.ToString());
+                e.GetState().PipelineInfo.AppendLine(nameof(onRequest) + ":" + e.HttpClient.Request.RequestUri);
+                await writeToConsole("request", url);
+                await writeToConsole("request","ProcessID " + httpClient.ProcessId.Value.ToString());
             }
         }
 
@@ -175,27 +161,25 @@ namespace Titanium.Web.Proxy.Examples.Basic
             return hostNames.Any(x => url.Contains(x));
         }
 
-
-
         private async Task onResponse(object sender, SessionEventArgs e)
         {
-            e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
-
 
             if (e.HttpClient.ConnectRequest?.TunnelType == TunnelType.Websocket)
             {
-                e.DataSent += WebSocket_DataSent;
-                e.DataReceived += WebSocket_DataReceived;
+                if (IsValidHost(e.HttpClient.Request.Url))
+                {
+                    e.DataSent += WebSocket_DataSent;
+                    e.DataReceived += WebSocket_DataReceived;
+                }
             }
 
             if(IsValidHost(e.HttpClient.Request.Url))
             {
-                await writeToConsole("Active Server Connections:" + ((ProxyServer)sender).ServerConnectionCount);
-            
+                e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
                 string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
-                await writeToConsole("response " + e.HttpClient.Request.Url);
-                await writeToConsole("response 1" + ext);
-                await writeToConsole("ProcessID " + e.HttpClient.ProcessId.Value.ToString());
+                await writeToConsole("response","response " + e.HttpClient.Request.Url);
+                await writeToConsole("response", "response 1" + ext);
+                await writeToConsole("response", "ProcessID " + e.HttpClient.ProcessId.Value.ToString());
             }
         }
 
@@ -203,7 +187,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             if (IsValidHost(e.HttpClient.Request.Url))
             {
-                await writeToConsole($"Pipelineinfo: {e.GetState().PipelineInfo}", ConsoleColor.Yellow);
+                await writeToConsole("Pipelineinfo", $"{e.GetState().PipelineInfo}");
             }
         }
 
@@ -223,14 +207,14 @@ namespace Titanium.Web.Proxy.Examples.Basic
             return Task.CompletedTask;
         }
 
-        private async Task writeToConsole(string message, ConsoleColor? consoleColor = null)
+        private async Task writeToConsole(string type, string message)
         {
+            var mes = DateTime.Now.ToLongTimeString() +"\t"+ type + "\t" + message;
             await @lock.WaitAsync();
-            logs.Add(message);
-            Console.WriteLine(message);
+            logs.Add(mes);
+            Console.WriteLine(mes);
             @lock.Release();
         }
-
 
         public void Dispose()
         {
