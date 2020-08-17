@@ -28,7 +28,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
             Console.WriteLine();
             Console.Read();
 
-            controller.Stop();
+            var logs = controller.Stop();
+            foreach (string log in logs)
+            {
+                Console.WriteLine(log);
+            }
             controller.Dispose();
         }
     }
