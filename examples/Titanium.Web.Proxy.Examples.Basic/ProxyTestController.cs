@@ -108,7 +108,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
             else
             {
-                await writeToConsole("Tunnel to" , hostname);
                 await writeToConsole("Tunnel to ", e.HttpClient.Request.Url);
             }
         }
@@ -152,7 +151,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 e.GetState().PipelineInfo.AppendLine(nameof(onRequest) + ":" + e.HttpClient.Request.RequestUri);
                 await writeToConsole("request", url);
-                await writeToConsole("request","ProcessID " + httpClient.ProcessId.Value.ToString());
             }
         }
 
@@ -177,9 +175,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
                 string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
-                await writeToConsole("response","response " + e.HttpClient.Request.Url);
-                await writeToConsole("response", "response 1" + ext);
-                await writeToConsole("response", "ProcessID " + e.HttpClient.ProcessId.Value.ToString());
+                await writeToConsole("response",e.HttpClient.Request.Url);
             }
         }
 
