@@ -20,6 +20,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private readonly SemaphoreSlim @lock = new SemaphoreSlim(1);
         private readonly ProxyServer proxyServer;
         private ExplicitProxyEndPoint explicitEndPoint;
+        private List<String> logs = new List<String>();
 
         public ProxyTestController(List<String> hostNames)
         {
@@ -113,7 +114,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
         }
 
-        public void Stop()
+        public List<String> Stop()
         {
             explicitEndPoint.BeforeTunnelConnectRequest -= onBeforeTunnelConnectRequest;
             explicitEndPoint.BeforeTunnelConnectResponse -= onBeforeTunnelConnectResponse;
@@ -125,8 +126,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             proxyServer.Stop();
 
-            // remove the generated certificates
-            //proxyServer.CertificateManager.RemoveTrustedRootCertificates();
+            return logs;
         }
 
         private async Task<IExternalProxy> onGetCustomUpStreamProxyFunc(SessionEventArgsBase arg)
@@ -382,19 +382,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private async Task writeToConsole(string message, ConsoleColor? consoleColor = null)
         {
             await @lock.WaitAsync();
-
-            if (consoleColor.HasValue)
-            {
-                ConsoleColor existing = Console.ForegroundColor;
-                Console.ForegroundColor = consoleColor.Value;
-                Console.WriteLine(message);
-                Console.ForegroundColor = existing;
-            }
-            else
-            {
-                Console.WriteLine(message);
-            }
-
+            logs.Add(message);
             @lock.Release();
         }
 
