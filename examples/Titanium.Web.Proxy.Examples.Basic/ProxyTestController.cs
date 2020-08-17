@@ -32,11 +32,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 if (exception is ProxyHttpException phex)
                 {
-                    //TBD await writeToConsole(exception.Message + ": " + phex.InnerException?.Message, ConsoleColor.Red);
+                    await writeToConsole(exception.Message + ": " + phex.InnerException?.Message, ConsoleColor.Red);
                 }
                 else
                 {
-                    //TBD await writeToConsole(exception.Message, ConsoleColor.Red);
+                    await writeToConsole(exception.Message, ConsoleColor.Red);
                 }
             };
 
@@ -349,7 +349,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private async Task onAfterResponse(object sender, SessionEventArgs e)
         {
-            //TBD await writeToConsole($"Pipelineinfo: {e.GetState().PipelineInfo}", ConsoleColor.Yellow);
+            
+            if (IsValidHost(e.HttpClient.Request.Url))
+            {
+                await writeToConsole($"Pipelineinfo: {e.GetState().PipelineInfo}", ConsoleColor.Yellow);
+            }
         }
 
         /// <summary>
