@@ -42,11 +42,18 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
         }
 
-        private static  void OnResponse(String s)
+        private static  void OnResponse(String s, String s2, int status)
         {
             if (s.Contains("upload-threaded-3"))
             {
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s);
+            }
+
+            if (s.Contains("Upload2"))
+            {
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s2);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + status);
             }
         }
 
@@ -54,8 +61,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private async Task Part2()
         {
             ProxyTestController controller = new ProxyTestController(hostNames1);
-            controller.OnRequest += OnRequest;
-            controller.OnResponse += OnResponse;
+
             controller.StartProxy();
             await CopyFileViaSelenium();
             //Wait for sometime
