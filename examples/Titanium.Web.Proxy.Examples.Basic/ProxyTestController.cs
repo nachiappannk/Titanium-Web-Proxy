@@ -19,7 +19,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private readonly List<string> hostNames;
         private readonly ProxyServer proxyServer;
         private ExplicitProxyEndPoint explicitEndPoint;
-        public event Action<String> OnRequest;
+        public event Action<String, long> OnRequest;
         public event Action<String, String, int, String, long> OnResponse;
 
         public ProxyTestController(List<String> hostNames)
@@ -97,7 +97,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             int processIdValue = e.HttpClient.ProcessId.Value;
             if (IsValidHost(url, processIdValue))
             {
-                OnRequest?.Invoke(httpClient.Request.Url);
+                OnRequest?.Invoke(httpClient.Request.Url, httpClient.Request.ContentLength);
                 e.GetState().PipelineInfo.AppendLine(nameof(OnRequestToServer) + ":" + e.HttpClient.Request.RequestUri);
             }
         }

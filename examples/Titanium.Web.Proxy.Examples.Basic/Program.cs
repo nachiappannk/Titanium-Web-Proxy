@@ -18,35 +18,35 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public static void Main(string[] args)
         {
+
+            NetworkMonitor nm = new NetworkMonitor();
+            nm.Monitor(60).GetAwaiter().GetResult();
+
             //Code to intercept the network traffic.
-            asyncMain().GetAwaiter().GetResult();
+            //asyncMain().GetAwaiter().GetResult();
 
             //Code to generate a random file
             //CreateFile(workingDirectory1+"somfile.txt", 4 * MB).GetAwaiter().GetResult();
         }
 
-        private static void OnRequest(String s)
+        private static void OnRequest(String url, long size)
         {
-            if (s.Contains("Upload2"))
-            {
-                Console.WriteLine(DateTime.Now.ToLongTimeString()+ " request "+ s);
-            }
+            Console.WriteLine(DateTime.Now.ToLongTimeString()+"\t"+size+"\t"+url);
         }
 
-        private static  void OnResponse(String s, String s2, int status, String method, long size)
+        private static  void OnResponse(String url, String body, int statusCode, String method, long size)
         {
             
-
-            if (s.Contains("upload-threaded-3"))
+            if (url.Contains("upload-threaded-3"))
             {
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + url);
             }
 
-            if (s.Contains("Upload2"))
+            if (url.Contains("Upload2"))
             {
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 1 " + s);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 2 " + s2);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + status);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 1 " + url);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 2 " + body);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + statusCode);
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 4 " + method);
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 5 " + size);
 
