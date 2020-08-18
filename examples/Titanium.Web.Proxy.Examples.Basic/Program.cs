@@ -38,12 +38,14 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             if (s.Contains("Upload2"))
             {
-                Console.WriteLine(DateTime.Now.ToLongTimeString()+ " "+ s);
+                Console.WriteLine(DateTime.Now.ToLongTimeString()+ " request "+ s);
             }
         }
 
-        private static  void OnResponse(String s, String s2, int status)
+        private static  void OnResponse(String s, String s2, int status, String method, long size)
         {
+            
+
             if (s.Contains("upload-threaded-3"))
             {
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s);
@@ -51,10 +53,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             if (s.Contains("Upload2"))
             {
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s2);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + status);
-
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 1 " + s);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 2 " + s2);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + status);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + method);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + size);
 
             }
         }

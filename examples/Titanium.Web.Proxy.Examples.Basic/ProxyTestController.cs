@@ -23,7 +23,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private List<String> logs = new List<String>();
         private HashSet<HttpWebClient> httpWebClients = new HashSet<HttpWebClient>();
         public event Action<String> OnRequest;
-        public event Action<String, String, int> OnResponse;
+        public event Action<String, String, int, String, long> OnResponse;
 
         public ProxyTestController(List<String> hostNames)
         {
@@ -177,7 +177,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                     e.DataSent += WebSocket_DataSent;
                     e.DataReceived += WebSocket_DataReceived;
                 }
-
+                
                 var body = "";
                 if (e.HttpClient.Response.HasBody)
                 {
@@ -205,7 +205,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 
                 //await e.SetResponseBodyString(bodsy);
 
-                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode);
+                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode, e.HttpClient.Request.Method, e.HttpClient.Response.ContentLength);
                 //e.HttpClient.Response.BodyString
                 //e.HttpClient.Response.HasBody
                 //e.HttpClient.Response.StatusCode
@@ -239,7 +239,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
                 }
 
-                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode);
+// OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode);
 
             }
 
