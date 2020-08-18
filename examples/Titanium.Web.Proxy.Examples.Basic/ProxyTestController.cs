@@ -120,7 +120,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 {
                     try
                     {
-                        body = await e.GetRequestBodyAsString();
+                        body = await e.GetResponseBodyAsString();
                     }
                     catch (Exception ee)
                     {
