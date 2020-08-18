@@ -17,11 +17,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
     public class ProxyTestController : IDisposable
     {
         private readonly List<string> hostNames;
-        private readonly SemaphoreSlim @lock = new SemaphoreSlim(1);
         private readonly ProxyServer proxyServer;
         private ExplicitProxyEndPoint explicitEndPoint;
-        private List<String> logs = new List<String>();
-        private HashSet<HttpWebClient> httpWebClients = new HashSet<HttpWebClient>();
         public event Action<String> OnRequest;
         public event Action<String, String, int, String, long> OnResponse;
 
@@ -30,17 +27,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             this.hostNames = hostNames;
             proxyServer = new ProxyServer();
 
-            proxyServer.ExceptionFunc = async exception =>
-            {
-                if (exception is ProxyHttpException phex)
-                {
-                    await WriteToConsole("Exception", exception.Message + ": " + phex.InnerException?.Message, -1);
-                }
-                else
-                {
-                    await WriteToConsole("Exception", exception.Message, -1);
-                }
-            };
+            proxyServer.ExceptionFunc = async exception => { };
 
             proxyServer.TcpTimeWaitSeconds = 10;
             proxyServer.ConnectionTimeOutSeconds = 15;
@@ -52,47 +39,35 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public void StartProxy()
         {
-            proxyServer.BeforeRequest += onRequest;
-            proxyServer.BeforeResponse += onResponse;
-            proxyServer.AfterResponse += onAfterResponse;
+            proxyServer.BeforeRequest += OnRequestToServer;
+            proxyServer.BeforeResponse += OnResponseFromServer;
             proxyServer.ServerCertificateValidationCallback += OnCertificateValidation;
-            proxyServer.ClientCertificateSelectionCallback += OnCertificateSelection;
+            
             explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000);
-            explicitEndPoint.BeforeTunnelConnectRequest += onBeforeTunnelConnectRequest;
-            explicitEndPoint.BeforeTunnelConnectResponse += onBeforeTunnelConnectResponse;
+            explicitEndPoint.BeforeTunnelConnectRequest += OnBeforeTunnelConnectRequest;
             proxyServer.AddEndPoint(explicitEndPoint);
             proxyServer.Start();
-            foreach (var endPoint in proxyServer.ProxyEndPoints)
-            {
-                Console.WriteLine("Listening on '{0}' endpoint at Ip {1} and port: {2} ", endPoint.GetType().Name,
-                    endPoint.IpAddress, endPoint.Port);
-            }
+            
+            
             if (RunTime.IsWindows)
             {
                 proxyServer.SetAsSystemProxy(explicitEndPoint, ProxyProtocolType.AllHttp);
             }
         }
 
-        public List<String> Stop()
+        public void Stop()
         {
-            explicitEndPoint.BeforeTunnelConnectRequest -= onBeforeTunnelConnectRequest;
-            explicitEndPoint.BeforeTunnelConnectResponse -= onBeforeTunnelConnectResponse;
+            explicitEndPoint.BeforeTunnelConnectRequest -= OnBeforeTunnelConnectRequest;
 
-            proxyServer.BeforeRequest -= onRequest;
-            proxyServer.BeforeResponse -= onResponse;
+            proxyServer.BeforeRequest -= OnRequestToServer;
+            proxyServer.BeforeResponse -= OnResponseFromServer;
             proxyServer.ServerCertificateValidationCallback -= OnCertificateValidation;
-            proxyServer.ClientCertificateSelectionCallback -= OnCertificateSelection;
-
             proxyServer.Stop();
-
-            return logs;
         }
 
-        private async Task onBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
+        private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
         {
             string hostname = e.HttpClient.Request.RequestUri.Host;
-            e.GetState().PipelineInfo.AppendLine(nameof(onBeforeTunnelConnectRequest) + ":" + hostname);
-            
 
             var clientLocalIp = e.ClientLocalEndPoint.Address;
             if (!clientLocalIp.Equals(IPAddress.Loopback) && !clientLocalIp.Equals(IPAddress.IPv6Loopback))
@@ -103,45 +78,13 @@ namespace Titanium.Web.Proxy.Examples.Basic
             int processIdValue = e.HttpClient.ProcessId.Value;
             if (!IsValidHost(hostname, processIdValue))
             {
-                // Exclude Https addresses you don't want to proxy
-                // Useful for clients that use certificate pinning
-                // for example dropbox.com
-                
                 e.DecryptSsl = false;
             }
-            else
-            {
-                //await WriteToConsole("Tunnel to ", e.HttpClient.Request.Url, processIdValue);
-            }
         }
 
-        private void WebSocket_DataSent(object sender, DataEventArgs e)
-        {
-            var args = (SessionEventArgs)sender;
-            WebSocketDataSentReceived(args, e, true);
-        }
 
-        private void WebSocket_DataReceived(object sender, DataEventArgs e)
-        {
-            var args = (SessionEventArgs)sender;
-            WebSocketDataSentReceived(args, e, false);
-        }
 
-        private void WebSocketDataSentReceived(SessionEventArgs args, DataEventArgs e, bool sent)
-        {
-            //foreach (var frame in args.WebSocketDecoder.Decode(e.Buffer, e.Offset, e.Count))
-            //{
-            //    WriteToConsole("socket comm", "is Sent :"+sent + frame.OpCode, -1).Wait();
-            //}
-        }
-
-        private Task onBeforeTunnelConnectResponse(object sender, TunnelConnectSessionEventArgs e)
-        {
-            e.GetState().PipelineInfo.AppendLine(nameof(onBeforeTunnelConnectResponse) + ":" + e.HttpClient.Request.RequestUri);
-            return Task.CompletedTask;
-        }
-
-        private async Task onRequest(object sender, SessionEventArgs e)
+        private async Task OnRequestToServer(object sender, SessionEventArgs e)
         {
             var clientLocalIp = e.ClientLocalEndPoint.Address;
             if (!clientLocalIp.Equals(IPAddress.Loopback) && !clientLocalIp.Equals(IPAddress.IPv6Loopback))
@@ -154,8 +97,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             if (IsValidHost(url, processIdValue))
             {
                 OnRequest?.Invoke(httpClient.Request.Url);
-                e.GetState().PipelineInfo.AppendLine(nameof(onRequest) + ":" + e.HttpClient.Request.RequestUri);
-                await WriteToConsole("request", url, processIdValue);
+                e.GetState().PipelineInfo.AppendLine(nameof(OnRequestToServer) + ":" + e.HttpClient.Request.RequestUri);
             }
         }
 
@@ -164,22 +106,16 @@ namespace Titanium.Web.Proxy.Examples.Basic
             return hostNames.Any(x => url.Contains(x));
         }
 
-        private async Task onResponse(object sender, SessionEventArgs e)
+        private async Task OnResponseFromServer(object sender, SessionEventArgs e)
         {
             int processIdValue = e.HttpClient.ProcessId.Value;
             string requestUrl = e.HttpClient.Request.Url;
-  
 
             if(IsValidHost(requestUrl, processIdValue))
             {
-                if (e.HttpClient.ConnectRequest?.TunnelType == TunnelType.Websocket)
-                {
-                    e.DataSent += WebSocket_DataSent;
-                    e.DataReceived += WebSocket_DataReceived;
-                }
-                
                 var body = "";
-                if (e.HttpClient.Response.HasBody)
+                long responseContentLength = e.HttpClient.Response.ContentLength;
+                if (e.HttpClient.Response.HasBody && responseContentLength > 0)
                 {
                     try
                     {
@@ -187,70 +123,14 @@ namespace Titanium.Web.Proxy.Examples.Basic
                     }
                     catch (Exception ee)
                     {
-                        body = "error";
+                        body = "error reading body";
                     }
-
-
                 }
 
-                try
-                {
-                    body = await e.GetResponseBodyAsString();
-                }
-                catch (Exception exception)
-                {
-                    body = "mew erorr";
-                }
-                
-                
-                //await e.SetResponseBodyString(bodsy);
-
-                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode, e.HttpClient.Request.Method, e.HttpClient.Response.ContentLength);
-                //e.HttpClient.Response.BodyString
-                //e.HttpClient.Response.HasBody
-                //e.HttpClient.Response.StatusCode
-                e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
-                string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
-                await WriteToConsole("response",requestUrl, processIdValue);
+                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode, e.HttpClient.Request.Method, responseContentLength);
             }
         }
 
-        private async Task onAfterResponse(object sender, SessionEventArgs e)
-        {
-
-            int processIdValue = e.HttpClient.ProcessId.Value;
-            string requestUrl = e.HttpClient.Request.Url;
-
-
-            if (IsValidHost(requestUrl, processIdValue))
-            {
-
-                var body = "";
-                if (e.HttpClient.Response.HasBody)
-                {
-                    try
-                    {
-                        body = e.HttpClient.Response.BodyString;
-                    }
-                    catch (Exception ee)
-                    {
-                        body = "error";
-                    }
-
-                }
-
-// OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode);
-
-            }
-
-            
-            /*
-            if (IsValidHost(e.HttpClient.Request.Url, processIdValue))
-            {
-                await WriteToConsole("Pipelineinfo", $"{e.GetState().PipelineInfo}", processIdValue);
-            }
-            */
-        }
 
         public Task OnCertificateValidation(object sender, CertificateValidationEventArgs e)
         {
@@ -262,23 +142,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
             return Task.CompletedTask;
         }
 
-        public Task OnCertificateSelection(object sender, CertificateSelectionEventArgs e)
-        {
-            e.GetState().PipelineInfo.AppendLine(nameof(OnCertificateSelection));
-            return Task.CompletedTask;
-        }
-
-        private async Task WriteToConsole(string type, string message, int processId)
-        {
-            //var mes = message + "\t" + DateTime.Now.ToLongTimeString() + "\t" + type + "\t"+ processId;  
-            //await @lock.WaitAsync();
-            //logs.Add(mes);
-            //@lock.Release();
-        }
-
         public void Dispose()
         {
-            @lock?.Dispose();
             proxyServer?.Dispose();
         }
     }
