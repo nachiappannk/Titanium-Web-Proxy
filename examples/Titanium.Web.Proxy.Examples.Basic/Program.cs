@@ -47,8 +47,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 1 " + s);
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 2 " + s2);
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + status);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + method);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + size);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 4 " + method);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 5 " + size);
 
             }
         }

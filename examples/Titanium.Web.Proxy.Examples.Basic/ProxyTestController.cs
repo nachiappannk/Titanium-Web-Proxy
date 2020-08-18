@@ -41,6 +41,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             proxyServer.BeforeRequest += OnRequestToServer;
             proxyServer.BeforeResponse += OnResponseFromServer;
+            proxyServer.AfterResponse += OnResponseFromServer;
             proxyServer.ServerCertificateValidationCallback += OnCertificateValidation;
             
             explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000);
@@ -119,7 +120,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 {
                     try
                     {
-                        body = e.HttpClient.Response.BodyString;
+                        body = await e.GetRequestBodyAsString();
                     }
                     catch (Exception ee)
                     {
