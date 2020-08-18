@@ -184,10 +184,12 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private async Task onAfterResponse(object sender, SessionEventArgs e)
         {
             int processIdValue = e.HttpClient.ProcessId.Value;
+            /*
             if (IsValidHost(e.HttpClient.Request.Url, processIdValue))
             {
                 await WriteToConsole("Pipelineinfo", $"{e.GetState().PipelineInfo}", processIdValue);
             }
+            */
         }
 
         public Task OnCertificateValidation(object sender, CertificateValidationEventArgs e)
