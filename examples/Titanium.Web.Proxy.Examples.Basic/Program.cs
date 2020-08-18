@@ -10,7 +10,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class Program
     {
-        private static List<string> hostNames1 = new List<string>() { "google", "ndtv" };
+        private static List<string> hostNames1 = new List<string>() { "sharefile", "szchanaa" };
         private static string outputFileName1 = "proxy.txt";
         private static string workingDirectory1 = @"C:\Data\";
         private static int KB = 1024;
@@ -34,10 +34,28 @@ namespace Titanium.Web.Proxy.Examples.Basic
             await Part2();
         }
 
+        private static void OnRequest(String s)
+        {
+            if (s.Contains("Upload2"))
+            {
+                Console.WriteLine(DateTime.Now.ToLongTimeString()+ " "+ s);
+            }
+        }
+
+        private static  void OnResponse(String s)
+        {
+            if (s.Contains("upload-threaded-3"))
+            {
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s);
+            }
+        }
+
+
         private async Task Part2()
         {
             ProxyTestController controller = new ProxyTestController(hostNames1);
-
+            controller.OnRequest += OnRequest;
+            controller.OnResponse += OnResponse;
             controller.StartProxy();
             await CopyFileViaSelenium();
             //Wait for sometime
@@ -111,6 +129,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 ConsoleHelper.DisableQuickEditMode();
             }
 
+            controller.OnRequest += OnRequest;
+            controller.OnResponse += OnResponse;
             // Start proxy controller
             controller.StartProxy();
 

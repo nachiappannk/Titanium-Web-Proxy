@@ -22,6 +22,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private ExplicitProxyEndPoint explicitEndPoint;
         private List<String> logs = new List<String>();
         private HashSet<HttpWebClient> httpWebClients = new HashSet<HttpWebClient>();
+        public event Action<String> OnRequest;
+        public event Action<String> OnResponse;
 
         public ProxyTestController(List<String> hostNames)
         {
@@ -109,7 +111,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
             else
             {
-                await WriteToConsole("Tunnel to ", e.HttpClient.Request.Url, processIdValue);
+                //await WriteToConsole("Tunnel to ", e.HttpClient.Request.Url, processIdValue);
             }
         }
 
@@ -127,10 +129,10 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private void WebSocketDataSentReceived(SessionEventArgs args, DataEventArgs e, bool sent)
         {
-            foreach (var frame in args.WebSocketDecoder.Decode(e.Buffer, e.Offset, e.Count))
-            {
-                WriteToConsole("socket comm", "is Sent :"+sent + frame.OpCode, -1).Wait();
-            }
+            //foreach (var frame in args.WebSocketDecoder.Decode(e.Buffer, e.Offset, e.Count))
+            //{
+            //    WriteToConsole("socket comm", "is Sent :"+sent + frame.OpCode, -1).Wait();
+            //}
         }
 
         private Task onBeforeTunnelConnectResponse(object sender, TunnelConnectSessionEventArgs e)
@@ -151,6 +153,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             int processIdValue = e.HttpClient.ProcessId.Value;
             if (IsValidHost(url, processIdValue))
             {
+                OnRequest?.Invoke(httpClient.Request.Url);
                 e.GetState().PipelineInfo.AppendLine(nameof(onRequest) + ":" + e.HttpClient.Request.RequestUri);
                 await WriteToConsole("request", url, processIdValue);
             }
@@ -174,7 +177,10 @@ namespace Titanium.Web.Proxy.Examples.Basic
                     e.DataSent += WebSocket_DataSent;
                     e.DataReceived += WebSocket_DataReceived;
                 }
-
+                OnResponse?.Invoke(e.HttpClient.Request.Url);
+                //e.HttpClient.Response.BodyString
+                //e.HttpClient.Response.HasBody
+                //e.HttpClient.Response.StatusCode
                 e.GetState().PipelineInfo.AppendLine(nameof(onResponse));
                 string ext = System.IO.Path.GetExtension(e.HttpClient.Request.RequestUri.AbsolutePath);
                 await WriteToConsole("response",requestUrl, processIdValue);
@@ -210,10 +216,10 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private async Task WriteToConsole(string type, string message, int processId)
         {
-            var mes = message + "\t" + DateTime.Now.ToLongTimeString() + "\t" + type + "\t"+ processId;  
-            await @lock.WaitAsync();
-            logs.Add(mes);
-            @lock.Release();
+            //var mes = message + "\t" + DateTime.Now.ToLongTimeString() + "\t" + type + "\t"+ processId;  
+            //await @lock.WaitAsync();
+            //logs.Add(mes);
+            //@lock.Release();
         }
 
         public void Dispose()
