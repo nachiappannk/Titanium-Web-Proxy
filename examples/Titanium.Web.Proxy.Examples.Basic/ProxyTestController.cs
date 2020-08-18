@@ -181,9 +181,29 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 var body = "";
                 if (e.HttpClient.Response.HasBody)
                 {
-                    body = e.HttpClient.Response.BodyString;
-                   
+                    try
+                    {
+                        body = e.HttpClient.Response.BodyString;
+                    }
+                    catch (Exception ee)
+                    {
+                        body = "error";
+                    }
+
+
                 }
+
+                try
+                {
+                    body = await e.GetResponseBodyAsString();
+                }
+                catch (Exception exception)
+                {
+                    body = "mew erorr";
+                }
+                
+                
+                //await e.SetResponseBodyString(bodsy);
 
                 OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode);
                 //e.HttpClient.Response.BodyString
@@ -197,7 +217,33 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private async Task onAfterResponse(object sender, SessionEventArgs e)
         {
+
             int processIdValue = e.HttpClient.ProcessId.Value;
+            string requestUrl = e.HttpClient.Request.Url;
+
+
+            if (IsValidHost(requestUrl, processIdValue))
+            {
+
+                var body = "";
+                if (e.HttpClient.Response.HasBody)
+                {
+                    try
+                    {
+                        body = e.HttpClient.Response.BodyString;
+                    }
+                    catch (Exception ee)
+                    {
+                        body = "error";
+                    }
+
+                }
+
+                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode);
+
+            }
+
+            
             /*
             if (IsValidHost(e.HttpClient.Request.Url, processIdValue))
             {

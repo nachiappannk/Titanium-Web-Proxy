@@ -54,6 +54,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s);
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + s2);
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + status);
+
+
             }
         }
 
