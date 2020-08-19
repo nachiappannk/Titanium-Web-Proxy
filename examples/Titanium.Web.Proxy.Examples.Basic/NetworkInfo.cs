@@ -12,5 +12,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
         public long PayloadSize { get; set; }
         public String Method { get; set; }
         public String Body { get; set; }
+        public byte[] BodyBytes { get; set; }
     }
 }

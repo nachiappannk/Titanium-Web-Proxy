@@ -118,6 +118,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Method = client.Request.Method,
                 Type = NetworkInfoType.Request,
                 Url = client.Request.Url,
+                //BodyBytes = client.Request.Body,
             };
             return networkInfo;
         }
@@ -162,6 +163,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Time = DateTime.Now,
                 Method = client.Request.Method,
                 Type = NetworkInfoType.Response,
+                //BodyBytes = client.Response.Body,
             };
             return networkInfo;
         }

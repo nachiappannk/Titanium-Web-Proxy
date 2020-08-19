@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Titanium.Web.Proxy.Examples.Basic.Helpers;
 using Titanium.Web.Proxy.Helpers;
@@ -100,13 +101,25 @@ namespace Titanium.Web.Proxy.Examples.Basic
             //controller.OnResponse += OnResponse;
             // Start proxy controller
 
+            List<String> logs = new List<string>();
             controller.OnNetworkEvent += (info) =>
             {
                 Task.Run(() =>
                 {
+                    var b = "converting error";
+                    try
+                    {
+                        //b = Encoding.UTF8.GetString(info.BodyBytes, 0, info.BodyBytes.Length);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                     lock (consoleLock)
                     {
-                        Console.WriteLine($"{info.Time.ToLongTimeString()}\t{info.ProcessId}\t{info.Id}\t{info.Type}\t{info.Method}\t{info.Url}\t{info.PayloadSize}\t{info.Body}");
+                        var log =
+                            $"{info.Time.ToLongTimeString()}\t{info.ProcessId}\t{info.Id}\t{info.Type}\t{info.Method}\t{info.Url}\t{info.PayloadSize}\t{info.Body}\t{b}";
+                        logs.Add(log);
                     }
                 });
             };
@@ -118,18 +131,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             controller.Stop();
             await Task.Delay(5000);
+            File.WriteAllLines(@"C:\Data\logs.txt", logs);
             controller.Dispose();
-        }
-
-        private static void Controller_OnNetworkEvent(NetworkInfo obj)
-        {
-            Task.Run(() =>
-            {
-                lock (obj)
-                {
-                    
-                }
-            });
         }
     }
 }
