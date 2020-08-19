@@ -2,7 +2,7 @@
 
 namespace Titanium.Web.Proxy.Examples.Basic
 {
-    public enum NetworkInfoType
+    public enum TransactionType
     {
         Request,
         Response,

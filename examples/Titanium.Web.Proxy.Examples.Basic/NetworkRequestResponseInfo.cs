@@ -4,7 +4,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class NetworkRequestResponseInfo
     {
-        public NetworkInfo Request { get; set; }
-        public NetworkInfo Response { get; set; }
+        public Transaction Request { get; set; }
+        public Transaction Response { get; set; }
     }
 }

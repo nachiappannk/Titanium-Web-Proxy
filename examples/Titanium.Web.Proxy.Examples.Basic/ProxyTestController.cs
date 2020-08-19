@@ -19,7 +19,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private readonly List<string> hostNames;
         private readonly ProxyServer proxyServer;
         private ExplicitProxyEndPoint explicitEndPoint;
-        public event Action<NetworkInfo> OnNetworkEvent;
+        public event Action<Transaction> OnNetworkEvent;
 
         public ProxyTestController(List<String> hostNames)
         {
@@ -107,16 +107,16 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
         }
 
-        private static NetworkInfo CreateRequestNetworkInfo(HttpWebClient client, int processIdValue)
+        private static Transaction CreateRequestNetworkInfo(HttpWebClient client, int processIdValue)
         {
-            var networkInfo = new NetworkInfo()
+            var networkInfo = new Transaction()
             {
-                Id = client.GetHashCode(),
+                MappingId = client.GetHashCode(),
                 ProcessId = processIdValue,
                 PayloadSize = client.Request.ContentLength,
                 Time = DateTime.Now,
                 Method = client.Request.Method,
-                Type = NetworkInfoType.Request,
+                Type = TransactionType.Request,
                 Url = client.Request.Url,
                 //BodyBytes = client.Request.Body,
             };
@@ -150,19 +150,19 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
         }
 
-        private static async Task<NetworkInfo> CreateResponseNetworkInfo(
+        private static async Task<Transaction> CreateResponseNetworkInfo(
             HttpWebClient client, int processIdValue)
         {
             long responseContentLength = client.Response.ContentLength;
-            var networkInfo = new NetworkInfo()
+            var networkInfo = new Transaction()
             {
-                Id = client.GetHashCode(),
+                MappingId = client.GetHashCode(),
                 Url = client.Request.Url,
                 ProcessId = processIdValue,
                 PayloadSize = client.Response.ContentLength,
                 Time = DateTime.Now,
                 Method = client.Request.Method,
-                Type = NetworkInfoType.Response,
+                Type = TransactionType.Response,
                 //BodyBytes = client.Response.Body,
             };
             return networkInfo;

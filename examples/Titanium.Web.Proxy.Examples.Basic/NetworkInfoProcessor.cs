@@ -8,13 +8,13 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class NetworkInfoProcessor
     {
-        private readonly BlockingCollection<NetworkInfo> networkInfoCollection = new BlockingCollection<NetworkInfo>();
+        private readonly BlockingCollection<Transaction> networkInfoCollection = new BlockingCollection<Transaction>();
         private Dictionary<int, NetworkRequestResponseInfo> calls = new Dictionary<int, NetworkRequestResponseInfo>();
         private int c = 0;
         
-        public void AddInfo(NetworkInfo networkInfo)
+        public void AddInfo(Transaction transaction)
         {
-            Task.Run(() => { networkInfoCollection.Add(networkInfo); });
+            Task.Run(() => { networkInfoCollection.Add(transaction); });
         }
 
         public async Task<String> Process(CancellationToken ct)
@@ -33,7 +33,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
                     //return "Good";
                 }
-                if (networkInfoCollection.TryTake(out NetworkInfo info))
+                if (networkInfoCollection.TryTake(out Transaction info))
                 {
                     Console.WriteLine($"{info.Url}\t{info.Body}");
                     Add(info);
@@ -49,21 +49,21 @@ namespace Titanium.Web.Proxy.Examples.Basic
             return "Should not come here";
         }
 
-        private bool IsCallComplete(NetworkInfo info)
+        private bool IsCallComplete(Transaction info)
         {
-            var call = calls[info.Id];
+            var call = calls[info.MappingId];
             return (call.Response != null && call.Request != null);
         }
 
-        private void Add(NetworkInfo info)
+        private void Add(Transaction info)
         {
-            if (!calls.ContainsKey(info.Id))
+            if (!calls.ContainsKey(info.MappingId))
             {
-                calls.Add(info.Id, new NetworkRequestResponseInfo());
+                calls.Add(info.MappingId, new NetworkRequestResponseInfo());
             }
 
-            var call = calls[info.Id];
-            if (info.Type == NetworkInfoType.Response)
+            var call = calls[info.MappingId];
+            if (info.Type == TransactionType.Response)
                 call.Response = info;
             else
                 call.Request = info;
