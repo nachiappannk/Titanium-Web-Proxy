@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
-using System.Threading;
 using System.Threading.Tasks;
 using Titanium.Web.Proxy.EventArguments;
-using Titanium.Web.Proxy.Exceptions;
 using Titanium.Web.Proxy.Helpers;
 using Titanium.Web.Proxy.Http;
 using Titanium.Web.Proxy.Models;
-using Titanium.Web.Proxy.StreamExtended.Network;
 
 namespace Titanium.Web.Proxy.Examples.Basic
 {
@@ -27,7 +24,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             proxyServer = new ProxyServer();
 
             proxyServer.ExceptionFunc = async exception => { };
-
             proxyServer.TcpTimeWaitSeconds = 10;
             proxyServer.ConnectionTimeOutSeconds = 15;
             proxyServer.ReuseSocket = false;
@@ -118,7 +114,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Method = client.Request.Method,
                 Type = NetworkActionType.Request,
                 Url = client.Request.Url,
-                //BodyBytes = client.Request.Body,
             };
             return networkInfo;
         }
@@ -163,7 +158,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Time = DateTime.Now,
                 Method = client.Request.Method,
                 Type = NetworkActionType.Response,
-                //BodyBytes = client.Response.Body,
             };
             return networkInfo;
         }
@@ -171,11 +165,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public Task OnCertificateValidation(object sender, CertificateValidationEventArgs e)
         {
-            e.GetState().PipelineInfo.AppendLine(nameof(OnCertificateValidation));
             if (e.SslPolicyErrors == SslPolicyErrors.None)
-            {
                 e.IsValid = true;
-            }
             return Task.CompletedTask;
         }
 

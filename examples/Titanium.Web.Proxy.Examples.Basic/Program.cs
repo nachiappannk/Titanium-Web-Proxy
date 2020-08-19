@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Examples.Basic.Helpers;
 using Titanium.Web.Proxy.Helpers;
 
 namespace Titanium.Web.Proxy.Examples.Basic
@@ -22,10 +21,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             //nm.Monitor(300).GetAwaiter().GetResult();
 
             //Code to intercept the network traffic.
-            if (RunTime.IsWindows)
-            {
-                ConsoleHelper.DisableQuickEditMode();
-            } 
+ 
             var result = new PerformanceProbe("sharefile", "szchanaa").asyncMain(60).GetAwaiter().GetResult();
             Console.WriteLine(result);
 

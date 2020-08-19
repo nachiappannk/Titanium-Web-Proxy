@@ -25,14 +25,14 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             var task = processor.Convert(ct);
             var task2 = MyDelay(timeWait, ct);
-            controller.OnNetworkEvent += processor.AddInfo;
+            controller.OnNetworkEvent += processor.AddNetworkAction;
             controller.StartProxy();
             await  Task.WhenAny(task ,task2);
             source.Cancel();
             await Task.WhenAll(task,task2);
             controller.Stop();
             await Task.Delay(5000);
-            controller.OnNetworkEvent -= processor.AddInfo;
+            controller.OnNetworkEvent -= processor.AddNetworkAction;
             controller.Dispose();
             return task.Result;
         }
