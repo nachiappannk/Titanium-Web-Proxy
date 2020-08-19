@@ -35,8 +35,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 }
                 if (networkInfoCollection.TryTake(out NetworkInfo info))
                 {
+                    Console.WriteLine($"{info.Url}\t{info.Body}");
                     Add(info);
-                    if(!IsCallComplete(info)) break;
+                    if(!IsCallComplete(info)) continue;
 
                 }
                 else

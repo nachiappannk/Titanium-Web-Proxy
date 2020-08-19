@@ -19,13 +19,12 @@ namespace Titanium.Web.Proxy.Examples.Basic
         public async Task<String> asyncMain(int timeWait)
         {
             ProxyTestController controller = new ProxyTestController(hostNames);
-
             NetworkInfoProcessor processor = new NetworkInfoProcessor();
             CancellationTokenSource source = new CancellationTokenSource();
             CancellationToken ct = source.Token;
+
             var task = processor.Process(ct);
             var task2 = MyDelay(timeWait, ct);
-            //Unsubscribe
             controller.OnNetworkEvent += processor.AddInfo;
             controller.StartProxy();
             await  Task.WhenAny(task ,task2);
@@ -35,7 +34,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             await Task.Delay(5000);
             controller.OnNetworkEvent -= processor.AddInfo;
             controller.Dispose();
-
             return task.Result;
         }
 
