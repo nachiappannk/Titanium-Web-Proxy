@@ -7,6 +7,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class FileCreator
     {
+        public static int OneKb = 1024;
+        public static int OneMb = OneKb * OneKb;
+
         private static Random random = new Random();
 
         public static async Task CreateFile(String path, int size)

@@ -8,24 +8,33 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class Program
     {
-        private static int OneKb = 1024;
-        private static int OneMb = OneKb * OneKb;
+        private static String[] domainNames = new[] { "sharefile", "szchanaa" };
 
         public static void Main(string[] args)
         {
+            //FileCreator is also available in the project
 
-            Test().GetAwaiter().GetResult();
-            
+            //TestASingleFileWebAppUpload().GetAwaiter().GetResult();
+            TestTwoFileWebAppUpload().GetAwaiter().GetResult();
         }
 
 
-        private static async Task Test()
+        private static async Task TestASingleFileWebAppUpload()
         {
-            var performanceProbe = new PerformanceProbe("sharefile", "szchanaa");
-
-
+            var performanceProbe = new PerformanceProbe(domainNames);
             Console.WriteLine("Do preparation");
             var pt = performanceProbe.GetFileLogs(300, 1, StartCounter, EndCounter);
+            Console.WriteLine("Do the test");
+            var result = await pt;
+            Console.WriteLine(result);
+            Console.WriteLine("Do Clean up");
+        }
+
+        private static async Task TestTwoFileWebAppUpload()
+        {
+            var performanceProbe = new PerformanceProbe(domainNames);
+            Console.WriteLine("Do preparation");
+            var pt = performanceProbe.GetFileLogs(300, 2, StartCounter, EndCounter);
             Console.WriteLine("Do the test");
             var result = await pt;
             Console.WriteLine(result);
@@ -40,7 +49,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 return false;
             return true;
         }
-
 
         private static bool EndCounter(NetworkAction a)
         {
