@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Titanium.Web.Proxy.Examples.Basic
@@ -7,7 +8,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
     public class NetworkMonitor
     {
 
-        private static List<string> hostNames1 = new List<string>() { "sharefile", "szchanaa" };
+        private static List<string> hostNames1 = new List<string>() { "sharefile", "szchanaa.sf" };
+        CancellationTokenSource source = new CancellationTokenSource();
         public async Task<NetworkResult> Monitor(int timeoutInSeconds)
         {
             ProxyTestController controller = new ProxyTestController(hostNames1);
@@ -15,11 +17,10 @@ namespace Titanium.Web.Proxy.Examples.Basic
             controller.OnResponse += OnResponse;
 
             controller.StartProxy();
-            return await Task.Delay(new TimeSpan(0, 0, 0, timeoutInSeconds))
+            return await Task.Delay(new TimeSpan(0, 0, 0, timeoutInSeconds), source.Token)
                 .ContinueWith((task) =>
                 {
-                    controller.Stop();
-                    controller.Dispose();
+                     controller.Stop();
                     return new NetworkResult();
                 });
         }
@@ -35,23 +36,42 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             if (url.Contains("upload-threaded-3"))
             {
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + url);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + url + " "+ method);
+               // CancelWait();
             }
 
             if (url.Contains("Upload2"))
             {
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 1 " + url);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 2 " + body);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + statusCode);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 4 " + method);
-                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 5 " + size);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 1 \n" + url);
+                Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 2 \n" + body);
+               // Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 3 " + statusCode);
+               // Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 4 " + method);
+               // Console.WriteLine(DateTime.Now.ToLongTimeString() + "response 5 " + size);
 
             }
         }
+
+        private async void CancelWait()
+        {
+            await Task.Delay(1000);
+            source.Cancel();
+
+        }
+    }
+
+    public enum State
+    {
+        BeforeRequest,
+        AfterRequest,
+        BeforeResponse,
+        AfterResponse,
     }
 
     public class NetworkResult  
     {
-        public int TimeTakeInSeconds { get; set; }
+        public State CurrentState { get; set; }
+        public DateTime RequestStartTime { get; set; }
+        public long RequestPayloadSize { get; set; }
+        public long 
     }
 }

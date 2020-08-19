@@ -20,7 +20,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
 
             NetworkMonitor nm = new NetworkMonitor();
-            nm.Monitor(60).GetAwaiter().GetResult();
+            nm.Monitor(300).GetAwaiter().GetResult();
 
             //Code to intercept the network traffic.
             //asyncMain().GetAwaiter().GetResult();

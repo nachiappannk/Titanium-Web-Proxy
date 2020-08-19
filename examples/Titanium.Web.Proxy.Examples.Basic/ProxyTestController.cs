@@ -21,6 +21,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private ExplicitProxyEndPoint explicitEndPoint;
         public event Action<String, long> OnRequest;
         public event Action<String, String, int, String, long> OnResponse;
+        public event Action<NetworkInfo> OnNetworkEvent;
 
         public ProxyTestController(List<String> hostNames)
         {
@@ -41,7 +42,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
         {
             proxyServer.BeforeRequest += OnRequestToServer;
             proxyServer.BeforeResponse += OnResponseFromServer;
-            proxyServer.AfterResponse += OnResponseFromServer;
             proxyServer.ServerCertificateValidationCallback += OnCertificateValidation;
             
             explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 8000);
@@ -97,9 +97,38 @@ namespace Titanium.Web.Proxy.Examples.Basic
             int processIdValue = e.HttpClient.ProcessId.Value;
             if (IsValidHost(url, processIdValue))
             {
+                var client = e.HttpClient;
+                var networkInfo = CreateRequestNetworkInfo(client, processIdValue);
+                OnNetworkEvent?.Invoke(networkInfo);
+
                 OnRequest?.Invoke(httpClient.Request.Url, httpClient.Request.ContentLength);
                 e.GetState().PipelineInfo.AppendLine(nameof(OnRequestToServer) + ":" + e.HttpClient.Request.RequestUri);
+                Console.WriteLine("On Request "+processIdValue+" "+url);
             }
+        }
+
+        private static NetworkInfo CreateRequestNetworkInfo(HttpWebClient client, int processIdValue)
+        {
+            var networkInfo = new NetworkInfo()
+            {
+                Id = client.GetHashCode(),
+                ProcessId = processIdValue,
+                PayloadSize = client.Request.ContentLength,
+                Time = DateTime.Now,
+                Method = client.Request.Method,
+                Type = NetworkInfoType.Request,
+            };
+            try
+            {
+
+                networkInfo.Body = client.Request.BodyString;
+            }
+            catch (Exception exception)
+            {
+                networkInfo.Body = "error";
+            }
+
+            return networkInfo;
         }
 
         private bool IsValidHost(string url, int procId)
@@ -114,22 +143,53 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             if(IsValidHost(requestUrl, processIdValue))
             {
-                var body = "";
-                long responseContentLength = e.HttpClient.Response.ContentLength;
-                if (e.HttpClient.Response.HasBody && responseContentLength > 0)
-                {
-                    try
-                    {
-                        body = await e.GetResponseBodyAsString();
-                    }
-                    catch (Exception ee)
-                    {
-                        body = "error reading body";
-                    }
-                }
+                var client = e.HttpClient;
 
-                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode, e.HttpClient.Request.Method, responseContentLength);
+                var body = "";
+               
+                var networkInfo = await CreateResponseNetworkInfo(client, processIdValue);
+
+                OnNetworkEvent?.Invoke(networkInfo);
+                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode, e.HttpClient.Request.Method, 0);
             }
+        }
+
+        private static async Task<NetworkInfo> CreateResponseNetworkInfo(
+            HttpWebClient client, int processIdValue)
+        {
+            long responseContentLength = client.Response.ContentLength;
+            string body;
+            if (client.Response.HasBody && responseContentLength > 0)
+            {
+                try
+                {
+                    body = client.Response.BodyString;
+                }
+                catch (Exception ee)
+                {
+                    body = "error reading body";
+                }
+            }
+
+            var networkInfo = new NetworkInfo()
+            {
+                Id = client.GetHashCode(),
+                ProcessId = processIdValue,
+                PayloadSize = client.Response.ContentLength,
+                Time = DateTime.Now,
+                Method = client.Request.Method,
+                Type = NetworkInfoType.Response,
+            };
+            try
+            {
+                networkInfo.Body = client.Request.BodyString;
+            }
+            catch (Exception exception)
+            {
+                networkInfo.Body = "error";
+            }
+
+            return networkInfo;
         }
 
 
@@ -146,6 +206,29 @@ namespace Titanium.Web.Proxy.Examples.Basic
         public void Dispose()
         {
             proxyServer?.Dispose();
+            
         }
+
+
+        
+    }
+
+    public enum NetworkInfoType
+    {
+        Request,
+        Response,
+    }
+
+
+    public class NetworkInfo
+    {
+        public int Id { get; set; }
+        public String Url { get; set; }
+        public int ProcessId { get; set; }
+        public NetworkInfoType Type { get; set; }
+        public DateTime Time { get; set; }
+        public long PayloadSize { get; set; }
+        public String Method { get; set; }
+        public String Body { get; set; }
     }
 }
