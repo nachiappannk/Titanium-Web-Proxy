@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Examples.Basic.Performance;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Titanium.Web.Proxy.Examples.Basic.Performance
 {
     public class NetworkActionToSessionLogConvertor
     {
@@ -96,35 +94,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 call.Response = info;
             else
                 call.Request = info;
-        }
-    }
-
-    public class SessionLog
-    {
-        public SessionLog()
-        {
-            Actions = new List<NetworkAction>();
-            IsCancelled = true;
-        }
-
-        public bool IsCancelled { get; set; }
-        public DateTime StarTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public List<NetworkAction> Actions { get; set; }
-
-        public override string ToString()
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"Total Time (s) is \t{(EndTime - StarTime).TotalSeconds}");
-            builder.AppendLine($"Start Time is \t{StarTime.ToLongTimeString()}");
-            builder.AppendLine($"End Time (s) is \t{EndTime.ToLongTimeString()}");
-            builder.AppendLine($"Is Cancelled is \t{IsCancelled}");
-            foreach (var n in Actions)
-            {
-                builder.AppendLine(
-                    $"{n.Time.ToLongTimeString()}\t{n.Type}\t{n.MappingId}\t{n.Method}\t{n.PayloadSize}\t{n.Url}");
-            }
-            return builder.ToString();
         }
     }
 }

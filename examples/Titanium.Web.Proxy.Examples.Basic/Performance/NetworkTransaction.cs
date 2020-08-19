@@ -1,7 +1,6 @@
 ﻿using System;
-using Titanium.Web.Proxy.Examples.Basic.Performance;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Titanium.Web.Proxy.Examples.Basic.Performance
 {
     public class NetworkTransaction
     {

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Titanium.Web.Proxy.Examples.Basic.Performance;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Titanium.Web.Proxy.Examples.Basic.Performance
 {
     public class PerformanceProbe
     {

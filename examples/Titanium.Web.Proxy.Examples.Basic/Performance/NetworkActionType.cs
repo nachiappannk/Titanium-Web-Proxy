@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Titanium.Web.Proxy.Examples.Basic
+namespace Titanium.Web.Proxy.Examples.Basic.Performance
 {
     public enum NetworkActionType
     {
