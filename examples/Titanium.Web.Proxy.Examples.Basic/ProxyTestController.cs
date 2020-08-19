@@ -103,7 +103,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
                 OnRequest?.Invoke(httpClient.Request.Url, httpClient.Request.ContentLength);
                 e.GetState().PipelineInfo.AppendLine(nameof(OnRequestToServer) + ":" + e.HttpClient.Request.RequestUri);
-                Console.WriteLine("On Request "+processIdValue+" "+url);
+
             }
         }
 
@@ -117,6 +117,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Time = DateTime.Now,
                 Method = client.Request.Method,
                 Type = NetworkInfoType.Request,
+                Url = client.Request.Url,
             };
             try
             {
@@ -174,6 +175,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             var networkInfo = new NetworkInfo()
             {
                 Id = client.GetHashCode(),
+                Url = client.Request.Url,
                 ProcessId = processIdValue,
                 PayloadSize = client.Response.ContentLength,
                 Time = DateTime.Now,
