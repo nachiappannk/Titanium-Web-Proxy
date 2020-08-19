@@ -131,7 +131,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             controller.Stop();
             await Task.Delay(5000);
-            File.WriteAllLines(@"C:\Data\logs.txt", logs);
+            File.WriteAllLines(@"C:\Data\logs11a.txt", logs);
             controller.Dispose();
         }
     }
