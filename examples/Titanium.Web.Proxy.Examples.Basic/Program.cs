@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Titanium.Web.Proxy.Examples.Basic.Helpers;
 using Titanium.Web.Proxy.Helpers;
@@ -13,7 +10,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class Program
     {
-        private static List<string> hostNames1 = new List<string>() { "sharefile", "szchanaa" };
         private static string outputFileName1 = "proxy.txt";
         private static string workingDirectory1 = @"C:\Data\";
         private static int KB = 1024;
@@ -30,7 +26,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 ConsoleHelper.DisableQuickEditMode();
             } 
-            var result = asyncMain(60).GetAwaiter().GetResult();
+            var result = PerformanceProbe.asyncMain(60).GetAwaiter().GetResult();
             Console.WriteLine(result);
 
             //Code to generate a random file
@@ -91,41 +87,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        private static async Task<String> asyncMain(int timeWait)
-        {
-            ProxyTestController controller = new ProxyTestController(hostNames1);
-            BlockingCollection<NetworkInfo> networkInfoCollection = new BlockingCollection<NetworkInfo>();
-            NetworkInfoProcessor processor = new NetworkInfoProcessor(controller, networkInfoCollection);
-            CancellationTokenSource source = new CancellationTokenSource();
-            CancellationToken ct = source.Token;
-            var task = processor.Process(ct);
-            var task2 = MyDelay(timeWait, ct);
-            //Unsubscribe
-            controller.OnNetworkEvent += (info) => { Task.Run(() => { networkInfoCollection.Add(info); }); };
-            controller.StartProxy();
-            await  Task.WhenAny(task, task2);
-            source.Cancel();
-            await Task.WhenAll(task, task2);
-            controller.Stop();
-            controller.Dispose();
-            await Task.Delay(5000);
-            return task.Result;
-        }
-
-        private static async Task MyDelay(int timeWait, CancellationToken ct)
-        {
-            try
-            {
-                await Task.Delay(new TimeSpan(0, 0, 0, timeWait), ct);
-            }
-            catch (Exception e)
-            {
-                
-            }
-
-            return;
         }
     }
 }
