@@ -8,16 +8,14 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class NetworkInfoProcessor
     {
-        private readonly ProxyTestController controller;
-        private readonly BlockingCollection<NetworkInfo> networkInfoCollection;
+        private readonly BlockingCollection<NetworkInfo> networkInfoCollection = new BlockingCollection<NetworkInfo>();
         private Dictionary<int, NetworkRequestResponseInfo> calls = new Dictionary<int, NetworkRequestResponseInfo>();
         private int c = 0;
-        public NetworkInfoProcessor(ProxyTestController controller, BlockingCollection<NetworkInfo> networkInfoCollection)
+        
+        public void AddInfo(NetworkInfo networkInfo)
         {
-            this.controller = controller;
-            this.networkInfoCollection = networkInfoCollection;
+            Task.Run(() => { networkInfoCollection.Add(networkInfo); });
         }
-
 
         public async Task<String> Process(CancellationToken ct)
         {
