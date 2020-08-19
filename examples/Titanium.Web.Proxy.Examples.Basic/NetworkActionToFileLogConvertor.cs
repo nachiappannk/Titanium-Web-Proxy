@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Titanium.Web.Proxy.Examples.Basic
 {
-    public class NetworkInfoProcessor
+    public class NetworkActionToFileLogConvertor
     {
-        private readonly BlockingCollection<Transaction> networkInfoCollection = new BlockingCollection<Transaction>();
+        private readonly BlockingCollection<NetworkAction> transactions = new BlockingCollection<NetworkAction>();
         private Dictionary<int, NetworkRequestResponseInfo> calls = new Dictionary<int, NetworkRequestResponseInfo>();
         private int c = 0;
         
-        public void AddInfo(Transaction transaction)
+        public void AddInfo(NetworkAction transaction)
         {
-            Task.Run(() => { networkInfoCollection.Add(transaction); });
+            Task.Run(() => { transactions.Add(transaction); });
         }
 
         public async Task<String> Process(CancellationToken ct)
@@ -33,7 +33,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
                     //return "Good";
                 }
-                if (networkInfoCollection.TryTake(out Transaction info))
+                if (transactions.TryTake(out NetworkAction info))
                 {
                     Console.WriteLine($"{info.Url}\t{info.Body}");
                     Add(info);
@@ -49,13 +49,13 @@ namespace Titanium.Web.Proxy.Examples.Basic
             return "Should not come here";
         }
 
-        private bool IsCallComplete(Transaction info)
+        private bool IsCallComplete(NetworkAction info)
         {
             var call = calls[info.MappingId];
             return (call.Response != null && call.Request != null);
         }
 
-        private void Add(Transaction info)
+        private void Add(NetworkAction info)
         {
             if (!calls.ContainsKey(info.MappingId))
             {
@@ -63,7 +63,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
 
             var call = calls[info.MappingId];
-            if (info.Type == TransactionType.Response)
+            if (info.Type == NetworkActionType.Response)
                 call.Response = info;
             else
                 call.Request = info;

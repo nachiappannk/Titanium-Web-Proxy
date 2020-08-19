@@ -2,10 +2,10 @@
 
 namespace Titanium.Web.Proxy.Examples.Basic
 {
-    public class Transaction
+    public class NetworkAction
     {
         public int ProcessId { get; set; }
-        public TransactionType Type { get; set; }
+        public NetworkActionType Type { get; set; }
         public int MappingId { get; set; }
         public String Url { get; set; }
         public DateTime Time { get; set; }

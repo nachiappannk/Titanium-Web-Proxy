@@ -19,7 +19,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         public async Task<String> asyncMain(int timeWait)
         {
             ProxyTestController controller = new ProxyTestController(hostNames);
-            NetworkInfoProcessor processor = new NetworkInfoProcessor();
+            NetworkActionToFileLogConvertor processor = new NetworkActionToFileLogConvertor();
             CancellationTokenSource source = new CancellationTokenSource();
             CancellationToken ct = source.Token;
 
