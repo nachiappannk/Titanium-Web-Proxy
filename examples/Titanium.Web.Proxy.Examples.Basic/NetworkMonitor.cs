@@ -13,9 +13,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
         public async Task<Object> Monitor(int timeoutInSeconds)
         {
             ProxyTestController controller = new ProxyTestController(hostNames1);
-            controller.OnRequest += OnRequest;
-            controller.OnResponse += OnResponse;
-
+     
             controller.StartProxy();
             return await Task.Delay(new TimeSpan(0, 0, 0, timeoutInSeconds), source.Token)
                 .ContinueWith((task) =>

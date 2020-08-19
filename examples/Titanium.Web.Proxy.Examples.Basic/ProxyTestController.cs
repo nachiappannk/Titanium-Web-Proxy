@@ -19,8 +19,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
         private readonly List<string> hostNames;
         private readonly ProxyServer proxyServer;
         private ExplicitProxyEndPoint explicitEndPoint;
-        public event Action<String, long> OnRequest;
-        public event Action<String, String, int, String, long> OnResponse;
         public event Action<NetworkInfo> OnNetworkEvent;
 
         public ProxyTestController(List<String> hostNames)
@@ -59,7 +57,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
         public void Stop()
         {
             explicitEndPoint.BeforeTunnelConnectRequest -= OnBeforeTunnelConnectRequest;
-
             proxyServer.BeforeRequest -= OnRequestToServer;
             proxyServer.BeforeResponse -= OnResponseFromServer;
             proxyServer.ServerCertificateValidationCallback -= OnCertificateValidation;
@@ -83,8 +80,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             }
         }
 
-
-
         private async Task OnRequestToServer(object sender, SessionEventArgs e)
         {
             var clientLocalIp = e.ClientLocalEndPoint.Address;
@@ -92,18 +87,23 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 e.HttpClient.UpStreamEndPoint = new IPEndPoint(clientLocalIp, 0);
             }
+
             var httpClient = e.HttpClient;
             var url = httpClient.Request.Url;
             int processIdValue = e.HttpClient.ProcessId.Value;
             if (IsValidHost(url, processIdValue))
             {
-                var client = e.HttpClient;
-                var networkInfo = CreateRequestNetworkInfo(client, processIdValue);
+                var networkInfo = CreateRequestNetworkInfo(httpClient, processIdValue);
+                try
+                {
+                    networkInfo.Body = "";
+                    if (httpClient.Request.HasBody && httpClient.Request.ContentLength > 0) networkInfo.Body = await e.GetRequestBodyAsString();
+                }
+                catch (Exception ex)
+                {
+                    networkInfo.Body = "There is an error in processing";
+                }
                 OnNetworkEvent?.Invoke(networkInfo);
-
-                OnRequest?.Invoke(httpClient.Request.Url, httpClient.Request.ContentLength);
-                e.GetState().PipelineInfo.AppendLine(nameof(OnRequestToServer) + ":" + e.HttpClient.Request.RequestUri);
-
             }
         }
 
@@ -119,39 +119,33 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Type = NetworkInfoType.Request,
                 Url = client.Request.Url,
             };
-            try
-            {
-
-                networkInfo.Body = client.Request.BodyString;
-            }
-            catch (Exception exception)
-            {
-                networkInfo.Body = "error";
-            }
-
             return networkInfo;
         }
 
         private bool IsValidHost(string url, int procId)
         {
-            return hostNames.Any(x => url.Contains(x));
+            return hostNames.Any(url.Contains);
         }
 
         private async Task OnResponseFromServer(object sender, SessionEventArgs e)
         {
-            int processIdValue = e.HttpClient.ProcessId.Value;
-            string requestUrl = e.HttpClient.Request.Url;
+            var client = e.HttpClient;
+            int processIdValue = client.ProcessId.Value;
+            string requestUrl = client.Request.Url;
 
             if(IsValidHost(requestUrl, processIdValue))
             {
-                var client = e.HttpClient;
-
-                var body = "";
-               
                 var networkInfo = await CreateResponseNetworkInfo(client, processIdValue);
-
+                try
+                {
+                    networkInfo.Body = "";
+                    if (client.Response.HasBody && client.Response.ContentLength > 0) networkInfo.Body = await e.GetResponseBodyAsString();
+                }
+                catch (Exception ex)
+                {
+                    networkInfo.Body = "There is an error in processing";
+                }
                 OnNetworkEvent?.Invoke(networkInfo);
-                OnResponse?.Invoke(e.HttpClient.Request.Url, body, e.HttpClient.Response.StatusCode, e.HttpClient.Request.Method, 0);
             }
         }
 
@@ -159,19 +153,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
             HttpWebClient client, int processIdValue)
         {
             long responseContentLength = client.Response.ContentLength;
-            string body;
-            if (client.Response.HasBody && responseContentLength > 0)
-            {
-                try
-                {
-                    body = client.Response.BodyString;
-                }
-                catch (Exception ee)
-                {
-                    body = "error reading body";
-                }
-            }
-
             var networkInfo = new NetworkInfo()
             {
                 Id = client.GetHashCode(),
@@ -182,15 +163,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 Method = client.Request.Method,
                 Type = NetworkInfoType.Response,
             };
-            try
-            {
-                networkInfo.Body = client.Request.BodyString;
-            }
-            catch (Exception exception)
-            {
-                networkInfo.Body = "error";
-            }
-
             return networkInfo;
         }
 
@@ -207,30 +179,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         public void Dispose()
         {
+            OnNetworkEvent = null;
             proxyServer?.Dispose();
-            
         }
-
-
-        
-    }
-
-    public enum NetworkInfoType
-    {
-        Request,
-        Response,
-    }
-
-
-    public class NetworkInfo
-    {
-        public int Id { get; set; }
-        public String Url { get; set; }
-        public int ProcessId { get; set; }
-        public NetworkInfoType Type { get; set; }
-        public DateTime Time { get; set; }
-        public long PayloadSize { get; set; }
-        public String Method { get; set; }
-        public String Body { get; set; }
     }
 }
