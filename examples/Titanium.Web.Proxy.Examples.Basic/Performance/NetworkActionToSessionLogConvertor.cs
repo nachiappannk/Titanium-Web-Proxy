@@ -40,7 +40,7 @@ namespace Titanium.Web.Proxy.Examples.Basic.Performance
 
                 var action = GetAction();
                 action.Invoke(info);
-                if (counter != numFiles)
+                if (counter == numFiles)
                 {
                     sessionLog.IsCancelled = false;
                     sessionLog.EndTime = info.Time;
@@ -68,10 +68,10 @@ namespace Titanium.Web.Proxy.Examples.Basic.Performance
 
         private void OnEventInStartedState(NetworkAction action)
         {
+            sessionLog.Actions.Add(action);
             if (endAction.Invoke(action))
             {
                 counter++;
-                sessionLog.Actions.Add(action);
             }
         }
 
