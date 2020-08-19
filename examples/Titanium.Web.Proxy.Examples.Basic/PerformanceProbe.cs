@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,11 +9,16 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class PerformanceProbe
     {
-        private static List<string> hostNames1 = new List<string>() { "sharefile", "szchanaa" };
+        private static List<string> hostNames;
 
-        public static async Task<String> asyncMain(int timeWait)
+        public PerformanceProbe(params String[] names)
         {
-            ProxyTestController controller = new ProxyTestController(hostNames1);
+            hostNames = names.ToList();
+        }
+
+        public async Task<String> asyncMain(int timeWait)
+        {
+            ProxyTestController controller = new ProxyTestController(hostNames);
             BlockingCollection<NetworkInfo> networkInfoCollection = new BlockingCollection<NetworkInfo>();
             NetworkInfoProcessor processor = new NetworkInfoProcessor(controller, networkInfoCollection);
             CancellationTokenSource source = new CancellationTokenSource();
@@ -31,7 +37,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             return task.Result;
         }
 
-        private static async Task MyDelay(int timeWait, CancellationToken ct)
+        private async Task MyDelay(int timeWait, CancellationToken ct)
         {
             try
             {

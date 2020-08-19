@@ -26,7 +26,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             {
                 ConsoleHelper.DisableQuickEditMode();
             } 
-            var result = PerformanceProbe.asyncMain(60).GetAwaiter().GetResult();
+            var result = new PerformanceProbe("sharefile", "szchanaa").asyncMain(60).GetAwaiter().GetResult();
             Console.WriteLine(result);
 
             //Code to generate a random file
