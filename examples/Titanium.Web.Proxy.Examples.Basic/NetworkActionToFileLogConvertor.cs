@@ -8,16 +8,15 @@ namespace Titanium.Web.Proxy.Examples.Basic
 {
     public class NetworkActionToFileLogConvertor
     {
-        private readonly BlockingCollection<NetworkAction> transactions = new BlockingCollection<NetworkAction>();
-        private Dictionary<int, NetworkRequestResponseInfo> calls = new Dictionary<int, NetworkRequestResponseInfo>();
-        private int c = 0;
+        private readonly BlockingCollection<NetworkAction> networkActions = new BlockingCollection<NetworkAction>();
+        private readonly Dictionary<int, NetworkTransaction> transactions = new Dictionary<int, NetworkTransaction>();
         
-        public void AddInfo(NetworkAction transaction)
+        public void AddNetworkAction(NetworkAction action)
         {
-            Task.Run(() => { transactions.Add(transaction); });
+            Task.Run(() => { networkActions.Add(action); });
         }
 
-        public async Task<String> Process(CancellationToken ct)
+        public async Task<String> Convert(CancellationToken ct)
         {
 
             while (true)
@@ -27,23 +26,16 @@ namespace Titanium.Web.Proxy.Examples.Basic
                     return "bad";
                 }
 
-                c++;
-                if (c == 10)
-                {
-
-                    //return "Good";
-                }
-                if (transactions.TryTake(out NetworkAction info))
+                if (networkActions.TryTake(out NetworkAction info))
                 {
                     Console.WriteLine($"{info.Url}\t{info.Body}");
-                    Add(info);
+                    AddToTransactions(info);
                     if(!IsCallComplete(info)) continue;
 
                 }
                 else
                 {
                     await Task.Delay(200);
-                    
                 }
             }
             return "Should not come here";
@@ -51,18 +43,18 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private bool IsCallComplete(NetworkAction info)
         {
-            var call = calls[info.MappingId];
+            var call = transactions[info.MappingId];
             return (call.Response != null && call.Request != null);
         }
 
-        private void Add(NetworkAction info)
+        private void AddToTransactions(NetworkAction info)
         {
-            if (!calls.ContainsKey(info.MappingId))
+            if (!transactions.ContainsKey(info.MappingId))
             {
-                calls.Add(info.MappingId, new NetworkRequestResponseInfo());
+                transactions.Add(info.MappingId, new NetworkTransaction());
             }
 
-            var call = calls[info.MappingId];
+            var call = transactions[info.MappingId];
             if (info.Type == NetworkActionType.Response)
                 call.Response = info;
             else

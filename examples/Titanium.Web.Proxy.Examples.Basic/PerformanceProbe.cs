@@ -23,7 +23,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
             CancellationTokenSource source = new CancellationTokenSource();
             CancellationToken ct = source.Token;
 
-            var task = processor.Process(ct);
+            var task = processor.Convert(ct);
             var task2 = MyDelay(timeWait, ct);
             controller.OnNetworkEvent += processor.AddInfo;
             controller.StartProxy();
