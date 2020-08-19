@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Titanium.Web.Proxy.Examples.Basic.Helpers;
 using Titanium.Web.Proxy.Helpers;
@@ -24,7 +26,12 @@ namespace Titanium.Web.Proxy.Examples.Basic
             //nm.Monitor(300).GetAwaiter().GetResult();
 
             //Code to intercept the network traffic.
-            asyncMain().GetAwaiter().GetResult();
+            if (RunTime.IsWindows)
+            {
+                ConsoleHelper.DisableQuickEditMode();
+            } 
+            var result = asyncMain(60).GetAwaiter().GetResult();
+            Console.WriteLine(result);
 
             //Code to generate a random file
             //CreateFile(workingDirectory1+"somfile.txt", 4 * MB).GetAwaiter().GetResult();
@@ -32,12 +39,12 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private static void OnRequest(String url, long size)
         {
-            Console.WriteLine(DateTime.Now.ToLongTimeString()+"\t"+size+"\t"+url);
+            Console.WriteLine(DateTime.Now.ToLongTimeString() + "\t" + size + "\t" + url);
         }
 
-        private static  void OnResponse(String url, String body, int statusCode, String method, long size)
+        private static void OnResponse(String url, String body, int statusCode, String method, long size)
         {
-            
+
             if (url.Contains("upload-threaded-3"))
             {
                 Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + url);
@@ -56,7 +63,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private static Random random = new Random();
 
-        public static  async Task CreateFile(String file, int size)
+        public static async Task CreateFile(String file, int size)
         {
             string path = file;
             // This text is added only once to the file.
@@ -72,6 +79,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                     {
                         await sw.WriteAsync(RandomString(1000));
                     }
+
                     await sw.FlushAsync();
                 }
             }
@@ -85,54 +93,110 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        private static async Task asyncMain()
+        private static async Task<String> asyncMain(int timeWait)
         {
-            var consoleLock = new object();
-            ;
             ProxyTestController controller = new ProxyTestController(hostNames1);
+            BlockingCollection<NetworkInfo> networkInfoCollection = new BlockingCollection<NetworkInfo>();
+            NetworkInfoProcessor processor = new NetworkInfoProcessor(controller, networkInfoCollection);
+            CancellationTokenSource source = new CancellationTokenSource();
+            CancellationToken ct = source.Token;
+            var task = processor.Process(ct);
+            var task2 = MyDelay(timeWait, ct);
+            //Unsubscribe
+            controller.OnNetworkEvent += (info) => { Task.Run(() => { networkInfoCollection.Add(info); }); };
+            controller.StartProxy();
+            await  Task.WhenAny(task, task2);
+            source.Cancel();
+            await Task.WhenAll(task, task2);
+            controller.Stop();
+            controller.Dispose();
+            await Task.Delay(5000);
+            return task.Result;
+        }
 
-            if (RunTime.IsWindows)
+        private static async Task MyDelay(int timeWait, CancellationToken ct)
+        {
+            try
             {
-                // fix console hang due to QuickEdit mode
-                ConsoleHelper.DisableQuickEditMode();
+                await Task.Delay(new TimeSpan(0, 0, 0, timeWait), ct);
+            }
+            catch (Exception e)
+            {
+                
             }
 
-            //controller.OnRequest += OnRequest;
-            //controller.OnResponse += OnResponse;
-            // Start proxy controller
-
-            List<String> logs = new List<string>();
-            controller.OnNetworkEvent += (info) =>
-            {
-                Task.Run(() =>
-                {
-                    var b = "converting error";
-                    try
-                    {
-                        //b = Encoding.UTF8.GetString(info.BodyBytes, 0, info.BodyBytes.Length);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                    lock (consoleLock)
-                    {
-                        var log =
-                            $"{info.Time.ToLongTimeString()}\t{info.ProcessId}\t{info.Id}\t{info.Type}\t{info.Method}\t{info.Url}\t{info.PayloadSize}\t{info.Body}\t{b}";
-                        logs.Add(log);
-                    }
-                });
-            };
-            controller.StartProxy();
-
-            Console.WriteLine("Hit any key to exit..");
-            Console.WriteLine();
-            Console.Read();
-
-            controller.Stop();
-            await Task.Delay(5000);
-            File.WriteAllLines(@"C:\Data\logs11a.txt", logs);
-            controller.Dispose();
+            return;
         }
+    }
+
+    public class NetworkInfoProcessor
+    {
+        private readonly ProxyTestController controller;
+        private readonly BlockingCollection<NetworkInfo> networkInfoCollection;
+        private Dictionary<int, NetworkRequestResponseInfo> calls = new Dictionary<int, NetworkRequestResponseInfo>();
+        private int c = 0;
+        public NetworkInfoProcessor(ProxyTestController controller, BlockingCollection<NetworkInfo> networkInfoCollection)
+        {
+            this.controller = controller;
+            this.networkInfoCollection = networkInfoCollection;
+        }
+
+
+        public async Task<String> Process(CancellationToken ct)
+        {
+
+            while (true)
+            {
+                if (ct.IsCancellationRequested)
+                {
+                    return "bad";
+                }
+
+                c++;
+                if (c == 10)
+                {
+
+                    //return "Good";
+                }
+                if (networkInfoCollection.TryTake(out NetworkInfo info))
+                {
+                    Add(info);
+                    if(!IsCallComplete(info)) break;
+
+                }
+                else
+                {
+                    await Task.Delay(200);
+                    
+                }
+            }
+            return "Should not come here";
+        }
+
+        private bool IsCallComplete(NetworkInfo info)
+        {
+            var call = calls[info.Id];
+            return (call.Response != null && call.Request != null);
+        }
+
+        private void Add(NetworkInfo info)
+        {
+            if (!calls.ContainsKey(info.Id))
+            {
+                calls.Add(info.Id, new NetworkRequestResponseInfo());
+            }
+
+            var call = calls[info.Id];
+            if (info.Type == NetworkInfoType.Response)
+                call.Response = info;
+            else
+                call.Request = info;
+        }
+    }
+
+    public class NetworkRequestResponseInfo
+    {
+        public NetworkInfo Request { get; set; }
+        public NetworkInfo Response { get; set; }
     }
 }
