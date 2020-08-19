@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Titanium.Web.Proxy.Examples.Basic.Performance;
 
 namespace Titanium.Web.Proxy.Examples.Basic
 {
@@ -16,10 +17,10 @@ namespace Titanium.Web.Proxy.Examples.Basic
             hostNames = names.ToList();
         }
 
-        public async Task<String> asyncMain(int timeWait)
+        public async Task<SessionLog> GetFileLogs(int timeWait, int numFiles, Predicate<NetworkAction> startAction, Predicate<NetworkAction> endAction)
         {
             ProxyTestController controller = new ProxyTestController(hostNames);
-            NetworkActionToFileLogConvertor processor = new NetworkActionToFileLogConvertor();
+            NetworkActionToSessionLogConvertor processor = new NetworkActionToSessionLogConvertor(numFiles, startAction, endAction);
             CancellationTokenSource source = new CancellationTokenSource();
             CancellationToken ct = source.Token;
 

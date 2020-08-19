@@ -22,7 +22,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
             //Code to intercept the network traffic.
  
-            var result = new PerformanceProbe("sharefile", "szchanaa").asyncMain(60).GetAwaiter().GetResult();
+            var result = new PerformanceProbe("sharefile", "szchanaa").GetFileLogs(60, 3, (x) => { return true; }, (x) => { return true; }).GetAwaiter().GetResult();
             Console.WriteLine(result);
 
             //Code to generate a random file

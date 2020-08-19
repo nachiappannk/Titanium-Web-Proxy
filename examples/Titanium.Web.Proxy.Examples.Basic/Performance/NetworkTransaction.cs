@@ -1,4 +1,5 @@
 ﻿using System;
+using Titanium.Web.Proxy.Examples.Basic.Performance;
 
 namespace Titanium.Web.Proxy.Examples.Basic
 {
