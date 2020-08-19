@@ -44,9 +44,9 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private static bool EndCounter(NetworkAction a)
         {
-            if (a.Type != NetworkActionType.Request)
-                return false;
             if (!a.Url.Contains("upload-threaded-3.aspx"))
+                return false;
+            if (a.Type != NetworkActionType.Response)
                 return false;
             return true;
         }
