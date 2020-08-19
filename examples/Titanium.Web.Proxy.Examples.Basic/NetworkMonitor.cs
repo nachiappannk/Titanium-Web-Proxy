@@ -10,7 +10,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private static List<string> hostNames1 = new List<string>() { "sharefile", "szchanaa.sf" };
         CancellationTokenSource source = new CancellationTokenSource();
-        public async Task<NetworkResult> Monitor(int timeoutInSeconds)
+        public async Task<Object> Monitor(int timeoutInSeconds)
         {
             ProxyTestController controller = new ProxyTestController(hostNames1);
             controller.OnRequest += OnRequest;
@@ -21,7 +21,7 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 .ContinueWith((task) =>
                 {
                      controller.Stop();
-                    return new NetworkResult();
+                    return new Object();
                 });
         }
 
@@ -59,19 +59,6 @@ namespace Titanium.Web.Proxy.Examples.Basic
         }
     }
 
-    public enum State
-    {
-        BeforeRequest,
-        AfterRequest,
-        BeforeResponse,
-        AfterResponse,
-    }
 
-    public class NetworkResult  
-    {
-        public State CurrentState { get; set; }
-        public DateTime RequestStartTime { get; set; }
-        public long RequestPayloadSize { get; set; }
-        public long 
-    }
+
 }

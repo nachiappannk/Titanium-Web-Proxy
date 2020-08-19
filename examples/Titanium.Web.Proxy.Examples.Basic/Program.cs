@@ -19,11 +19,11 @@ namespace Titanium.Web.Proxy.Examples.Basic
         public static void Main(string[] args)
         {
 
-            NetworkMonitor nm = new NetworkMonitor();
-            nm.Monitor(300).GetAwaiter().GetResult();
+            //NetworkMonitor nm = new NetworkMonitor();
+            //nm.Monitor(300).GetAwaiter().GetResult();
 
             //Code to intercept the network traffic.
-            //asyncMain().GetAwaiter().GetResult();
+            asyncMain().GetAwaiter().GetResult();
 
             //Code to generate a random file
             //CreateFile(workingDirectory1+"somfile.txt", 4 * MB).GetAwaiter().GetResult();
@@ -86,6 +86,8 @@ namespace Titanium.Web.Proxy.Examples.Basic
 
         private static async Task asyncMain()
         {
+            var consoleLock = new object();
+            ;
             ProxyTestController controller = new ProxyTestController(hostNames1);
 
             if (RunTime.IsWindows)
@@ -94,9 +96,20 @@ namespace Titanium.Web.Proxy.Examples.Basic
                 ConsoleHelper.DisableQuickEditMode();
             }
 
-            controller.OnRequest += OnRequest;
-            controller.OnResponse += OnResponse;
+            //controller.OnRequest += OnRequest;
+            //controller.OnResponse += OnResponse;
             // Start proxy controller
+
+            controller.OnNetworkEvent += (info) =>
+            {
+                Task.Run(() =>
+                {
+                    lock (consoleLock)
+                    {
+                        Console.WriteLine($"{info.Time.ToLongTimeString()}\t{info.ProcessId}\t{info.Id}\t{info.Type}\t{info.Method}\t{info.Url}\t{info.PayloadSize}\t{info.Body}");
+                    }
+                });
+            };
             controller.StartProxy();
 
             Console.WriteLine("Hit any key to exit..");
@@ -106,6 +119,17 @@ namespace Titanium.Web.Proxy.Examples.Basic
             controller.Stop();
             await Task.Delay(5000);
             controller.Dispose();
+        }
+
+        private static void Controller_OnNetworkEvent(NetworkInfo obj)
+        {
+            Task.Run(() =>
+            {
+                lock (obj)
+                {
+                    
+                }
+            });
         }
     }
 }
